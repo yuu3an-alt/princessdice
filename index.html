@@ -1,1 +1,2034 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>DICE PRINCESS 〜魔王城脱出記〜</title>
+<style>
+/* ============================================================
+   DICE PRINCESS — LAST DUNGEON DICE visual language
+   cream / ink-navy / gate-teal / signal-orange / abyss-purple
+============================================================ */
+:root{
+  --cream:#F2EEE3;
+  --cream2:#EAE4D4;
+  --ink:#16323F;
+  --ink2:#1E4152;
+  --teal:#2FB4AD;
+  --teal-dk:#1E8F8A;
+  --sig:#FF4A2D;
+  --purple:#4E2650;
+  --purple-dk:#361A38;
+  --gold:#F0B32C;
+  --blue:#2D6FD1;
+  --white:#FDFCF8;
+  --shadow:0 6px 0 rgba(22,50,63,.16);
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+  background:var(--ink);
+  color:var(--ink);
+  touch-action:manipulation;
+}
+#app{
+  position:fixed;inset:0;max-width:520px;margin:0 auto;
+  background:var(--cream);
+  display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
+  overflow:hidden;
+  transition:background .5s;
+}
+#app.enemy-phase{background:#E8DCD4;}
+#app.boss-bg{background:#DCD2DE;}
+#app.shake{animation:shk .34s;}
+@keyframes shk{
+  0%,100%{transform:translate(0,0)}
+  15%{transform:translate(-7px,3px)}30%{transform:translate(6px,-4px)}
+  45%{transform:translate(-5px,-2px)}60%{transform:translate(4px,3px)}
+  75%{transform:translate(-3px,1px)}90%{transform:translate(2px,-1px)}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01s !important;transition-duration:.01s !important;}
+}
 
+/* ---------- generic buttons ---------- */
+.btn{
+  border:none;font-family:inherit;font-weight:800;
+  border-radius:var(--r);cursor:pointer;
+  color:var(--white);background:var(--ink);
+  box-shadow:var(--shadow);
+  padding:14px 20px;font-size:16px;letter-spacing:.06em;
+  transition:transform .08s,filter .15s;
+}
+.btn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(22,50,63,.16);}
+.btn.teal{background:var(--teal);}
+.btn.sig{background:var(--sig);}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 3px var(--ink);}
+.btn:disabled{filter:grayscale(.9) opacity(.45);pointer-events:none;}
+
+/* ============================================================ TITLE */
+#title{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  background:var(--cream);z-index:60;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+.hero{
+  position:relative;margin-top:2vh;flex:0 0 auto;
+  width:min(88vw,380px);max-height:40vh;
+}
+.hero svg{width:100%;height:auto;display:block;}
+.logo{margin-top:12px;text-align:center;line-height:.95;flex:0 0 auto;transform:rotate(-2deg);}
+.logo .en{
+  font-size:clamp(34px,9.5vw,48px);font-weight:900;letter-spacing:.015em;color:var(--ink);
+  text-shadow:4px 4px 0 var(--sig),7px 7px 0 rgba(22,50,63,.15);
+}
+.logo .sub{
+  display:inline-block;margin-top:14px;background:var(--sig);color:var(--white);
+  font-weight:800;font-size:14px;letter-spacing:.2em;padding:6px 18px;border-radius:999px;
+}
+#title .menu{
+  margin-top:22px;flex:0 0 auto;
+  padding-bottom:calc(30px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;gap:10px;width:min(74vw,300px);
+}
+#title .menu .btn{padding:13px 20px;}
+#title .gemrow{display:flex;justify-content:center;margin-bottom:2px;}
+.gemchip{
+  display:inline-flex;align-items:center;gap:6px;background:var(--ink);color:var(--white);
+  border-radius:999px;padding:6px 16px;font-weight:800;font-size:14px;
+}
+.gemchip svg{width:15px;height:15px;}
+.ver{position:absolute;bottom:calc(6px + env(safe-area-inset-bottom));right:12px;font-size:10px;font-weight:700;color:rgba(22,50,63,.4);}
+
+/* ============================================================ HUD */
+#hud{
+  flex:0 0 auto;display:flex;align-items:center;gap:10px;
+  padding:10px 14px 6px;
+}
+#hud .depth{
+  background:var(--ink);color:var(--white);font-weight:900;font-size:13px;
+  border-radius:8px;padding:5px 10px;letter-spacing:.05em;white-space:nowrap;
+}
+#hud .hpwrap{flex:1;display:flex;flex-direction:column;gap:3px;}
+#hud .hplabel{display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:var(--ink2);}
+#hud .hpbar{height:14px;background:rgba(22,50,63,.15);border-radius:999px;overflow:hidden;position:relative;}
+#hud .hpbar .fill{
+  position:absolute;inset:0;width:100%;border-radius:999px;
+  background:linear-gradient(180deg,#43C9C2,var(--teal-dk));
+  transition:width .35s cubic-bezier(.22,1,.36,1);
+}
+#hud .hpbar .fill.low{background:linear-gradient(180deg,#FF7A5C,var(--sig));}
+#hud .gems{display:flex;align-items:center;gap:5px;font-weight:900;font-size:15px;color:var(--ink);}
+#hud .gems svg{width:16px;height:16px;}
+#hud .blockchip{
+  display:none;align-items:center;gap:3px;background:var(--blue);color:#fff;
+  font-weight:900;font-size:12px;border-radius:999px;padding:4px 9px;
+}
+#hud .blockchip.on{display:inline-flex;}
+
+/* ============================================================ STAGE / ENEMY */
+#stage{flex:1 1 auto;position:relative;display:flex;align-items:center;justify-content:center;min-height:0;perspective:700px;}
+.enemyCard{
+  position:relative;width:min(64vw,250px);text-align:center;
+  transition:opacity .4s;
+}
+.enemyCard .circle{transform-style:preserve-3d;will-change:transform;animation:eidle 2.8s ease-in-out infinite;}
+@keyframes eidle{
+  0%,100%{transform:scale(1,1) translateY(0)}
+  50%{transform:scale(1.025,.965) translateY(3px)}
+}
+.enemyCard.atk .circle{animation:eatk .55s cubic-bezier(.45,0,.55,1);}
+@keyframes eatk{
+  0%{transform:translateY(-12px) rotateX(16deg) scale(.95,1.06)}   /* 溜め:のけぞり */
+  40%{transform:translateY(-14px) rotateX(18deg) scale(.93,1.08)}
+  62%{transform:translateY(30px) translateZ(60px) rotateX(-12deg) scale(1.16,.9)} /* 突進:手前へ */
+  100%{transform:none}
+}
+.enemyCard.hit .circle{animation:ehit3d .34s cubic-bezier(.2,.8,.3,1);}
+@keyframes ehit3d{
+  0%{transform:rotateY(20deg) translateX(-10px) translateZ(-30px) scale(.93,1.06);filter:brightness(3) saturate(0)}
+  55%{transform:rotateY(-10deg) translateX(7px) scale(1.03,.97)}
+  100%{transform:none;filter:none}
+}
+.enemyCard.dead{opacity:0;}
+.enemyCard.dead .circle{animation:edead .5s ease-in forwards;}
+@keyframes edead{
+  0%{transform:none}
+  100%{transform:rotateX(76deg) translateY(46px) scale(.7);filter:grayscale(1)}
+}
+.enemyCard .circle{
+  width:min(46vw,190px);height:min(46vw,190px);margin:0 auto;
+  background:var(--white);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 0 rgba(22,50,63,.12), inset 0 0 0 6px rgba(22,50,63,.05);
+  position:relative;overflow:visible;
+}
+.enemyCard .circle svg{width:74%;height:74%;}
+.enemyCard .nametag{
+  display:inline-flex;align-items:center;gap:8px;margin-top:12px;
+  background:var(--ink);color:var(--white);border-radius:10px;
+  padding:6px 14px;font-weight:900;font-size:15px;letter-spacing:.08em;
+}
+.enemyCard .lv{
+  background:var(--sig);border-radius:5px;font-size:10px;padding:2px 6px;line-height:1.2;
+}
+.enemyCard .ehp{margin:10px auto 0;width:78%;}
+.enemyCard .ehpbar{height:12px;background:rgba(22,50,63,.16);border-radius:999px;overflow:hidden;position:relative;}
+.enemyCard .ehpbar .fill{position:absolute;inset:0;background:linear-gradient(180deg,#FF7A5C,var(--sig));border-radius:999px;transition:width .3s;}
+.enemyCard .ehpnum{font-size:12px;font-weight:900;color:var(--ink2);margin-top:4px;display:flex;justify-content:center;gap:8px;}
+.enemyCard .eblock{display:none;color:var(--blue);}
+.enemyCard .eblock.on{display:inline;}
+.dmgnum{
+  position:absolute;left:50%;top:32%;z-index:20;pointer-events:none;
+  font-weight:900;font-size:52px;color:var(--sig);
+  -webkit-text-stroke:2.5px var(--white);
+  text-shadow:0 5px 0 rgba(22,50,63,.3);
+  transform:translate(-50%,-50%) rotate(-8deg);
+  animation:dpop .75s cubic-bezier(.18,1.4,.4,1) forwards;
+}
+.dmgnum.heal{color:var(--teal);}
+.dmgnum.block{color:var(--blue);font-size:38px;}
+.dmgnum.onhero{top:auto;bottom:8%;}
+@keyframes dpop{
+  0%{transform:translate(-50%,-50%) rotate(-8deg) scale(.2);opacity:0}
+  18%{transform:translate(-50%,-58%) rotate(-8deg) scale(1.25);opacity:1}
+  40%{transform:translate(-50%,-62%) rotate(-6deg) scale(1)}
+  75%{opacity:1}
+  100%{transform:translate(-50%,-90%) rotate(-4deg) scale(.95);opacity:0}
+}
+.turnbanner{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  z-index:30;pointer-events:none;
+}
+.turnbanner span{
+  font-weight:900;font-size:26px;letter-spacing:.25em;padding:14px 0;width:100%;text-align:center;
+  color:var(--white);
+  animation:bnr 1s cubic-bezier(.22,1,.36,1) forwards;
+}
+.turnbanner.p span{background:linear-gradient(90deg,transparent,rgba(47,180,173,.95),transparent);}
+.turnbanner.e span{background:linear-gradient(90deg,transparent,rgba(78,38,80,.95),transparent);}
+.turnbanner.lv span{background:linear-gradient(90deg,transparent,rgba(240,179,44,.97),transparent);color:var(--ink);animation-duration:1.1s;}
+@keyframes bnr{
+  0%{transform:scaleX(0);opacity:0}
+  20%{transform:scaleX(1);opacity:1}
+  80%{opacity:1}
+  100%{opacity:0}
+}
+
+/* ============================================================ INTENT */
+#intent{
+  flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:8px;
+  margin:0 14px 6px;padding:8px 10px;border-radius:12px;
+  background:var(--ink);color:var(--white);font-weight:800;font-size:13.5px;
+  letter-spacing:.04em;min-height:40px;
+}
+#intent.warn{background:var(--purple);animation:ipulse 1s infinite;}
+@keyframes ipulse{0%,100%{box-shadow:0 0 0 0 rgba(255,74,45,.6)}50%{box-shadow:0 0 0 5px rgba(255,74,45,0)}}
+#intent .ival{color:var(--sig);font-size:18px;font-weight:900;}
+#intent.warn .ival{color:#FFB199;}
+
+/* ============================================================ DICE */
+#dicetray{
+  flex:0 0 auto;display:flex;justify-content:center;gap:14px;
+  padding:4px 0 10px;min-height:66px;position:relative;
+}
+.pile{
+  position:absolute;top:2px;width:46px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+}
+.pile.deckp{left:10px;}
+.pile.discp{right:10px;}
+.pstack{position:relative;width:34px;height:42px;}
+.pstack i{
+  position:absolute;inset:0;border-radius:6px;display:block;
+  background:linear-gradient(160deg,var(--white),#EDE6D2);
+  box-shadow:inset 0 0 0 2px var(--ink);
+}
+.pstack i:nth-child(1){transform:translate(4px,4px);}
+.pstack i:nth-child(2){transform:translate(2px,2px);}
+.pstack i:nth-child(3)::after{
+  content:"";position:absolute;inset:5px;border-radius:3px;
+  background:repeating-linear-gradient(45deg,var(--teal) 0 4px,transparent 4px 8px);
+  opacity:.5;
+}
+.pile.discp .pstack i{filter:grayscale(.7);box-shadow:inset 0 0 0 2px rgba(22,50,63,.5);}
+.pile.empty .pstack i{background:transparent;box-shadow:inset 0 0 0 2px rgba(22,50,63,.25);}
+.pile.empty .pstack i::after{display:none;}
+.pcount{
+  position:absolute;top:-8px;right:-4px;min-width:19px;height:19px;
+  background:var(--sig);color:#fff;border-radius:999px;
+  font-size:11px;font-weight:900;line-height:19px;padding:0 4px;
+  box-shadow:0 2px 0 rgba(22,50,63,.25);
+}
+.pile.discp .pcount{background:var(--ink);}
+.plabel{font-size:9px;font-weight:900;color:var(--ink2);letter-spacing:.05em;}
+.die{
+  width:54px;height:54px;border-radius:13px;position:relative;
+  background:linear-gradient(160deg,var(--white),#EDE6D2);
+  box-shadow:0 5px 0 rgba(22,50,63,.25), inset 0 -3px 0 rgba(22,50,63,.08);
+  transition:transform .12s,box-shadow .12s,opacity .2s;
+  touch-action:none;
+}
+.die.dragging{opacity:.25;}
+.dragghost{
+  position:fixed;width:58px;height:58px;z-index:90;pointer-events:none;
+  border-radius:14px;margin:0;
+  background:linear-gradient(160deg,var(--white),#EDE6D2);
+  box-shadow:0 16px 24px rgba(22,50,63,.4),0 0 0 4px var(--gold);
+  transform:scale(1.12);transition:none;
+}
+.card.droptarget{
+  box-shadow:0 4px 0 rgba(22,50,63,.18),0 0 0 3px var(--gold),0 0 16px rgba(240,179,44,.65);
+}
+.card.dimmed{opacity:.4;filter:grayscale(.5);}
+.slot .unx{
+  position:absolute;top:-10px;right:-10px;width:21px;height:21px;border-radius:50%;
+  background:var(--sig);color:#fff;font-size:14px;font-weight:900;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--white);
+  box-shadow:0 2px 0 rgba(22,50,63,.3);z-index:2;
+}
+.ctype.summon{background:var(--gold);color:var(--ink);}
+/* 召喚/技名カットイン */
+.cutin{
+  position:absolute;left:0;right:0;top:46%;z-index:26;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;gap:10px;padding:9px 0;
+  background:linear-gradient(90deg,transparent,rgba(22,50,63,.94) 16%,rgba(22,50,63,.94) 84%,transparent);
+  transform:skewY(-2deg);
+  animation:cutin .6s cubic-bezier(.2,1,.3,1) forwards;
+}
+.cutin.summon{background:linear-gradient(90deg,transparent,rgba(78,38,80,.95) 16%,rgba(78,38,80,.95) 84%,transparent);}
+.cutin .face{
+  width:46px;height:46px;border-radius:50%;background:var(--white);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;flex:0 0 auto;
+  box-shadow:0 0 0 3px var(--gold);
+}
+.cutin .face svg{width:76%;height:76%;}
+.cutin .tname{color:#fff;font-weight:900;font-size:17px;letter-spacing:.12em;text-shadow:0 2px 0 rgba(0,0,0,.3);}
+.cutin .tsub{color:var(--gold);font-weight:900;font-size:10px;letter-spacing:.2em;display:block;}
+@keyframes cutin{
+  0%{transform:translateX(-105%) skewY(-2deg);opacity:0}
+  22%{transform:translateX(0) skewY(-2deg);opacity:1}
+  78%{transform:translateX(0) skewY(-2deg);opacity:1}
+  100%{transform:translateX(16%) skewY(-2deg);opacity:0}
+}
+.flycard{
+  position:fixed;z-index:85;margin:0;pointer-events:none;
+  transition:transform .45s cubic-bezier(.32,.9,.4,1),opacity .45s ease-in;
+  animation:none;
+}
+.slashfx{
+  position:absolute;left:50%;top:30%;width:170px;height:7px;border-radius:4px;
+  background:linear-gradient(90deg,transparent,#fff,transparent);
+  box-shadow:0 0 14px rgba(255,255,255,.95);
+  z-index:22;pointer-events:none;
+  animation:slashfx .32s ease-out forwards;
+}
+@keyframes slashfx{
+  0%{transform:translate(-50%,-50%) rotate(-38deg) scaleX(.1);opacity:0}
+  30%{opacity:1}
+  100%{transform:translate(-50%,-50%) rotate(-38deg) scaleX(1.5);opacity:0}
+}
+.deckbtn{
+  display:flex;align-items:center;gap:4px;
+  background:var(--ink);color:var(--white);border-radius:8px;
+  padding:5px 9px;font-weight:900;font-size:12px;white-space:nowrap;
+}
+/* チュートリアルのコーチマーク */
+#coach{position:fixed;inset:0;z-index:75;pointer-events:none;}
+#coach .spot{
+  position:absolute;border-radius:14px;
+  box-shadow:0 0 0 9999px rgba(22,50,63,.55);
+  border:3px solid var(--gold);
+  animation:spotp 1.1s infinite;
+}
+@keyframes spotp{0%,100%{border-color:var(--gold)}50%{border-color:#fff}}
+#coach .bubble{
+  position:absolute;left:50%;transform:translateX(-50%);
+  width:min(84vw,300px);background:var(--white);border-radius:14px;
+  padding:14px 14px 12px;box-shadow:0 6px 0 rgba(22,50,63,.25);
+  text-align:center;pointer-events:auto;
+  animation:pin .3s cubic-bezier(.22,1.4,.4,1);
+}
+#coach .bubble.waiting{pointer-events:none;}
+#coach .btxt{font-size:13.5px;font-weight:800;color:var(--ink);line-height:1.65;margin-bottom:8px;}
+#coach .bnext{padding:9px 30px;font-size:13px;}
+#coach .bwait{font-size:11px;font-weight:900;color:var(--sig);letter-spacing:.1em;animation:cready 1s infinite;}
+.countb{
+  position:absolute;bottom:-7px;right:-5px;background:var(--ink);color:#fff;
+  font-size:10px;font-weight:900;border-radius:6px;padding:2px 6px;z-index:2;
+  box-shadow:0 2px 0 rgba(22,50,63,.25);
+}
+#dicetray.n6 .die{width:46px;height:46px;}
+#dicetray.n6{gap:8px;}
+.firetag{
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  background:var(--sig);color:#fff;font-size:9px;font-weight:900;
+  padding:3px 9px;border-radius:999px;white-space:nowrap;z-index:3;
+  box-shadow:0 2px 0 rgba(22,50,63,.25);
+}
+.die.sel{
+  transform:translateY(-10px) scale(1.08);
+  box-shadow:0 10px 0 rgba(22,50,63,.2),0 0 0 4px var(--gold);
+}
+.die.spent{opacity:0;transform:scale(.4);pointer-events:none;}
+.die.locked{filter:grayscale(1) brightness(.75);pointer-events:none;}
+.die.locked::after{
+  content:"⛓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:26px;background:rgba(22,50,63,.35);border-radius:13px;color:#fff;
+}
+.die.rolling{animation:droll .45s cubic-bezier(.3,1.6,.5,1);}
+@keyframes droll{0%{transform:translateY(-46px) rotate(-160deg) scale(.6);opacity:0}60%{transform:translateY(4px) rotate(10deg)}100%{transform:none;opacity:1}}
+.die .pip{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--ink);}
+.die.v1 .pip{background:var(--sig);width:13px;height:13px;}
+
+/* ============================================================ HAND (physical card anatomy) */
+#handwrap{flex:0 0 auto;padding:0 8px 6px;}
+#hand{
+  display:flex;gap:8px;overflow-x:auto;overflow-y:visible;
+  padding:30px 6px 8px;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+#hand::-webkit-scrollbar{display:none;}
+.card{
+  flex:0 0 108px;min-height:150px;position:relative;
+  background:var(--white);border-radius:11px;
+  box-shadow:0 4px 0 rgba(22,50,63,.18), inset 0 0 0 1px rgba(22,50,63,.08);
+  padding:6px 6px 7px;display:flex;flex-direction:column;align-items:center;
+  transition:transform .14s,box-shadow .14s;
+}
+.card.ready{
+  transform:translateY(-6px);
+  box-shadow:0 9px 0 rgba(22,50,63,.15),0 0 0 3px var(--sig),0 0 18px rgba(255,74,45,.55);
+  animation:cready .9s infinite;
+}
+@keyframes cready{0%,100%{box-shadow:0 9px 0 rgba(22,50,63,.15),0 0 0 3px var(--sig),0 0 12px rgba(255,74,45,.4)}50%{box-shadow:0 9px 0 rgba(22,50,63,.15),0 0 0 3px var(--sig),0 0 26px rgba(255,74,45,.8)}}
+.card.ng{animation:cng .3s;}
+@keyframes cng{0%,100%{transform:none}25%{transform:translateX(-6px)}55%{transform:translateX(6px)}80%{transform:translateX(-3px)}}
+.card .cname{
+  font-size:11px;font-weight:900;letter-spacing:.06em;color:var(--ink);
+  width:100%;text-align:center;padding-right:14px;line-height:1.2;
+}
+.card .ctype{
+  position:absolute;top:-5px;right:-3px;
+  background:var(--sig);color:#fff;font-size:9px;font-weight:900;
+  padding:3px 5px 4px;border-radius:4px;line-height:1;
+  clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%);
+  min-height:22px;
+}
+.card .ctype.skill{background:var(--blue);}
+.card .ctype.manip{background:var(--purple);}
+.card .cicon{
+  width:44px;height:44px;border-radius:50%;margin:3px 0 2px;
+  background:var(--cream2);display:flex;align-items:center;justify-content:center;
+}
+.card .cicon svg{width:70%;height:70%;}
+.card .slots{display:flex;gap:4px;align-items:center;margin:2px 0;}
+.slot{
+  width:26px;height:26px;border-radius:7px;position:relative;
+  background:var(--white);
+  box-shadow:inset 0 0 0 2px var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:900;color:var(--ink2);
+}
+.slot.filled{box-shadow:inset 0 0 0 2px var(--teal);background:#E4F5F4;}
+.slot.hint{animation:shint .8s infinite;}
+@keyframes shint{0%,100%{box-shadow:inset 0 0 0 2px var(--ink)}50%{box-shadow:inset 0 0 0 3px var(--gold)}}
+.slot .mini{position:absolute;inset:2px;}
+.card .grouplabel{font-size:8.5px;font-weight:800;color:var(--ink2);letter-spacing:.02em;margin-top:1px;}
+.card .cdesc{
+  margin-top:auto;width:100%;
+  border:2px solid var(--blue);border-radius:6px;
+  font-size:8.6px;font-weight:700;color:var(--ink);
+  padding:3px 3px;text-align:center;line-height:1.35;background:#FAFDFF;
+  min-height:32px;display:flex;align-items:center;justify-content:center;
+}
+.card.manipcard .cdesc{border-color:var(--purple);}
+
+/* ============================================================ CONTROLS */
+#controls{
+  flex:0 0 auto;display:flex;align-items:stretch;gap:8px;
+  padding:2px 12px 12px;
+}
+#controls .btn{flex:1;font-size:14px;padding:13px 6px;border-radius:13px;}
+#btnReroll{background:var(--purple);}
+#btnReroll small{display:block;font-size:10px;font-weight:700;opacity:.85;margin-top:1px;}
+#btnEnd{background:var(--teal);}
+#turnpip{
+  flex:0 0 52px;display:flex;align-items:center;justify-content:center;
+  border-radius:13px;background:rgba(22,50,63,.08);
+}
+#turnpip .lamp{
+  width:34px;height:34px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px var(--teal);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:14px;font-weight:900;
+}
+#turnpip .lamp::after{content:"姫";}
+#app.enemy-phase #turnpip .lamp{background:var(--purple);box-shadow:0 0 10px var(--purple);}
+#app.enemy-phase #turnpip .lamp::after{content:"敵";}
+
+/* ============================================================ OVERLAY (rewards / map / shops / events) */
+#overlay{
+  position:absolute;inset:0;z-index:70;display:none;
+  background:rgba(22,50,63,.55);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  align-items:center;justify-content:center;
+}
+#overlay.show{display:flex;}
+.panel{
+  width:min(92vw,400px);max-height:82vh;overflow-y:auto;
+  background:var(--cream);border-radius:20px;
+  padding:20px 16px 18px;
+  box-shadow:0 12px 0 rgba(0,0,0,.25);
+  animation:pin .35s cubic-bezier(.22,1.4,.4,1);
+  -webkit-overflow-scrolling:touch;
+}
+@keyframes pin{0%{transform:translateY(40px) scale(.92);opacity:0}100%{transform:none;opacity:1}}
+.panel h2{
+  text-align:center;font-size:19px;font-weight:900;letter-spacing:.14em;color:var(--ink);
+  margin-bottom:4px;
+}
+.panel .plead{text-align:center;font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:14px;}
+.pickrow{display:flex;gap:8px;justify-content:center;}
+.pickrow .card{flex:0 0 31%;min-height:158px;}
+.pickrow .card:active{transform:scale(.96);}
+.panel .actions{display:flex;gap:10px;margin-top:16px;}
+.panel .actions .btn{flex:1;}
+.rarebadge{
+  position:absolute;top:-7px;left:-5px;background:var(--gold);color:var(--ink);
+  font-size:8.5px;font-weight:900;border-radius:5px;padding:2px 6px;z-index:2;
+  box-shadow:0 2px 0 rgba(22,50,63,.2);
+}
+/* map doors */
+.doors{display:flex;gap:10px;justify-content:center;}
+.door{
+  flex:1;max-width:120px;background:var(--white);border-radius:14px;
+  padding:14px 8px 12px;text-align:center;
+  box-shadow:0 5px 0 rgba(22,50,63,.18);
+  transition:transform .1s;
+}
+.door:active{transform:translateY(3px);}
+.door .arch2{
+  width:56px;height:64px;margin:0 auto 8px;border-radius:999px 999px 0 0;
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+  background:var(--teal);color:#fff;position:relative;
+}
+.door.d-battle .arch2{background:var(--ink);}
+.door.d-elite .arch2{background:var(--purple);}
+.door.d-rest .arch2{background:var(--gold);}
+.door.d-shop .arch2{background:var(--teal);}
+.door.d-event .arch2{background:var(--sig);}
+.door.d-boss .arch2{background:var(--purple-dk);}
+.door .dname{font-size:12.5px;font-weight:900;color:var(--ink);letter-spacing:.05em;}
+.door .dsub{font-size:9.5px;font-weight:700;color:var(--ink2);margin-top:2px;line-height:1.3;}
+.progress{
+  display:flex;align-items:center;justify-content:center;gap:4px;margin:2px 0 16px;
+}
+.progress .pstep{width:9px;height:9px;border-radius:50%;background:rgba(22,50,63,.18);}
+.progress .pstep.done{background:var(--teal);}
+.progress .pstep.cur{background:var(--sig);transform:scale(1.35);}
+.progress .pstep.boss{width:13px;height:13px;border-radius:3px;transform:rotate(45deg);}
+.progress .pstep.boss.cur{transform:rotate(45deg) scale(1.25);}
+/* shop rows */
+.shoprow{
+  display:flex;align-items:center;gap:10px;background:var(--white);
+  border-radius:12px;padding:10px 12px;margin-bottom:8px;
+  box-shadow:0 3px 0 rgba(22,50,63,.12);
+}
+.shoprow .sinfo{flex:1;min-width:0;}
+.shoprow .sname{font-size:13.5px;font-weight:900;color:var(--ink);}
+.shoprow .sdesc{font-size:10.5px;font-weight:700;color:var(--ink2);line-height:1.35;}
+.shoprow .btn{padding:9px 12px;font-size:13px;flex:0 0 auto;min-width:74px;}
+.shoprow.sold{opacity:.45;}
+/* dice event */
+.bigdie{
+  width:110px;height:110px;border-radius:24px;margin:6px auto 12px;position:relative;
+  background:linear-gradient(160deg,var(--white),#EDE6D2);
+  box-shadow:0 9px 0 rgba(22,50,63,.25);
+}
+.bigdie .pip{position:absolute;width:20px;height:20px;border-radius:50%;background:var(--ink);}
+.bigdie.rolling{animation:droll .5s cubic-bezier(.3,1.6,.5,1);}
+/* deck list for removal */
+.decklist{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+.decklist .card{flex:0 0 30%;min-height:150px;}
+/* manip targeting */
+#manipveil{
+  position:absolute;inset:0;z-index:40;display:none;
+  background:rgba(22,50,63,.35);
+}
+#manipveil.show{display:block;}
+#manipveil .msg{
+  position:absolute;left:0;right:0;bottom:36%;text-align:center;
+  color:#fff;font-weight:900;font-size:16px;letter-spacing:.12em;
+  text-shadow:0 2px 6px rgba(0,0,0,.5);
+}
+#app.targeting #dicetray{position:relative;z-index:45;}
+#app.targeting .die:not(.locked):not(.spent){animation:shint2 .7s infinite;}
+@keyframes shint2{0%,100%{box-shadow:0 5px 0 rgba(22,50,63,.25)}50%{box-shadow:0 5px 0 rgba(22,50,63,.25),0 0 0 4px var(--gold)}}
+.pmchoice{
+  position:absolute;z-index:46;display:flex;gap:8px;
+  left:50%;transform:translateX(-50%);
+}
+.pmchoice button{
+  width:52px;height:44px;border:none;border-radius:12px;font-size:19px;font-weight:900;
+  background:var(--gold);color:var(--ink);box-shadow:0 4px 0 rgba(22,50,63,.3);
+}
+/* result screens */
+.resultface{width:130px;height:130px;border-radius:50%;background:var(--white);margin:4px auto 12px;display:flex;align-items:center;justify-content:center;box-shadow:0 7px 0 rgba(22,50,63,.14);}
+.resultface svg{width:72%;height:72%;}
+.bignum{text-align:center;font-size:44px;font-weight:900;color:var(--sig);line-height:1;}
+.bignum small{font-size:13px;color:var(--ink2);display:block;font-weight:800;margin-top:4px;letter-spacing:.1em;}
+.fade-in{animation:fin .5s;}
+@keyframes fin{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- battle chrome -->
+  <div id="hud"></div>
+  <div id="stage"></div>
+  <div id="intent"></div>
+  <div id="dicetray"></div>
+  <div id="handwrap"><div id="hand"></div></div>
+  <div id="controls">
+    <button class="btn" id="btnReroll">振り直し<small>HP −2</small></button>
+    <div id="turnpip"><div class="lamp"></div></div>
+    <button class="btn" id="btnEnd">ターン終了</button>
+  </div>
+  <div id="manipveil"><div class="msg">対象のダイスを選択</div></div>
+  <div id="overlay"></div>
+  <!-- title -->
+  <div id="title"></div>
+</div>
+<script>
+"use strict";
+/* ============================================================
+   CFG — 全チューニング定数
+============================================================ */
+const CFG = {
+  VERSION:"1.6.1",
+  PLAYER_HP:30,
+  DICE:3,
+  HAND:5,
+  LEVEL:{HP_GAIN:3, HAND_LV:3, DICE_LV:5, DICE_LV2:7, MAX:9},  // 必要EXP = 現Lv×2
+  REROLL_HP:2,
+  TOTAL_STEPS:10,          // 10部屋目=魔王
+  REST_HEAL_RATE:0.4,
+  POTION_HEAL:10,
+  ELITE_STEPS:[5,8],
+  SHAKE_MS:340,
+  ENEMY_ACT_DELAY:650,
+  BANNER_MS:1000,
+  GEM_CLEAR_BONUS:25,
+  SHOP:{cardCost:[8,10,12],potion:6,maxhp:10,remove:5},
+  META:[
+    {id:"hp",   name:"王家の加護",   desc:"最大HP +5 / Lv",         max:3, cost:[15,30,50], },
+    {id:"gem",  name:"蓄えた魔石",   desc:"開始時 魔石 +8 / Lv",     max:2, cost:[10,25],    },
+    {id:"blood",name:"薄い血",       desc:"振り直しのHP消費 2 → 1", max:1, cost:[40],       },
+    {id:"dice4",name:"四つ目のダイス",desc:"ダイスが 3 → 4 個になる", max:1, cost:[80],      },
+  ],
+};
+
+/* ============================================================
+   小道具
+============================================================ */
+const $  = s=>document.querySelector(s);
+const rnd = n=>Math.floor(Math.random()*n);
+const d6  = ()=>1+rnd(6);
+const pick= a=>a[rnd(a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const wait = ms=>new Promise(r=>setTimeout(r,ms));
+
+/* localStorage は使えない環境でも動くように保護(iOS Safari では永続化) */
+const store = {
+  mem:{},
+  get(k,def){ try{const v=localStorage.getItem(k);return v==null?def:JSON.parse(v);}catch(e){return (k in this.mem)?this.mem[k]:def;} },
+  set(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} this.mem[k]=v; },
+};
+
+/* ============================================================
+   AUDIO — Web Audio 合成SFX
+============================================================ */
+const AudioSys = {
+  ctx:null, unlocked:false,
+  unlock(){ if(this.unlocked)return; try{ this.ctx=new (window.AudioContext||window.webkitAudioContext)(); this.unlocked=true; }catch(e){} },
+  tone(f,dur=.1,type="square",vol=.12,slide=0,when=0){
+    if(!this.ctx)return;
+    const t=this.ctx.currentTime+when;
+    const o=this.ctx.createOscillator(),g=this.ctx.createGain();
+    o.type=type;o.frequency.setValueAtTime(f,t);
+    if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),t+dur);
+    g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    o.connect(g);g.connect(this.ctx.destination);o.start(t);o.stop(t+dur+.02);
+  },
+  noise(dur=.15,vol=.14,when=0){
+    if(!this.ctx)return;
+    const t=this.ctx.currentTime+when;
+    const n=this.ctx.sampleRate*dur,buf=this.ctx.createBuffer(1,n,this.ctx.sampleRate);
+    const d=buf.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);
+    const s=this.ctx.createBufferSource();s.buffer=buf;
+    const g=this.ctx.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    s.connect(g);g.connect(this.ctx.destination);s.start(t);
+  },
+  tap(){this.tone(660,.05,"square",.07);},
+  select(){this.tone(880,.06,"square",.08);},
+  place(){this.tone(520,.07,"triangle",.12);this.tone(780,.06,"triangle",.09,0,.05);},
+  roll(){for(let i=0;i<4;i++)this.tone(300+rnd(400),.04,"square",.05,0,i*.045);},
+  fire(){this.noise(.18,.16);this.tone(200,.22,"sawtooth",.14,-140);},
+  hit(){this.noise(.22,.2);this.tone(120,.25,"sawtooth",.16,-70);},
+  heal(){this.tone(520,.12,"sine",.12);this.tone(660,.12,"sine",.11,0,.09);this.tone(880,.16,"sine",.1,0,.18);},
+  gem(){this.tone(1040,.07,"square",.09);this.tone(1560,.1,"square",.07,0,.06);},
+  win(){[523,659,784,1046].forEach((f,i)=>this.tone(f,.16,"square",.11,0,i*.11));},
+  lose(){[392,330,262,196].forEach((f,i)=>this.tone(f,.22,"sawtooth",.1,0,i*.16));},
+  warn(){this.tone(180,.3,"sawtooth",.13,-60);},
+};
+window.addEventListener("pointerdown",()=>AudioSys.unlock(),{once:true});
+
+/* ============================================================
+   FLAT SVG — 実物版風フラットイラスト工房
+============================================================ */
+const C={ink:"#16323F",teal:"#2FB4AD",sig:"#FF4A2D",gold:"#F0B32C",pur:"#4E2650",white:"#FDFCF8",skin:"#F5CBA0",green:"#5EA85B",grey:"#8E9BA3"};
+const SVG={
+  princess:`<svg viewBox="0 0 100 100"><path d="M50 12 q-16 0 -18 20 l-6 56 h48 l-6 -56 q-2 -20 -18 -20z" fill="${C.gold}"/><circle cx="50" cy="26" r="12" fill="${C.skin}"/><path d="M38 24 q0 -12 12 -12 q12 0 12 12 l-2 -2 q-10 6 -20 0z" fill="${C.gold}"/><path d="M50 40 q-14 0 -16 14 l-8 34 h48 l-8 -34 q-2 -14 -16 -14z" fill="${C.white}"/><path d="M40 56 l-10 32 h14z M60 56 l10 32 h-14z" fill="#DCE9EC"/><circle cx="50" cy="42" r="3" fill="${C.teal}"/></svg>`,
+  slime:`<svg viewBox="0 0 100 100"><path d="M50 22 q30 4 32 40 q2 22 -32 22 q-34 0 -32 -22 q2 -36 32 -40z" fill="${C.teal}"/><path d="M50 30 q20 4 22 30 q1 14 -22 14z" fill="#249B95"/><ellipse cx="38" cy="40" rx="7" ry="9" fill="rgba(255,255,255,.55)"/></svg>`,
+  bat:`<svg viewBox="0 0 100 100"><path d="M50 46 L14 26 q4 14 12 18 q-8 2 -12 8 q10 2 16 8 q-4 6 -2 12 q8 -8 22 -10z" fill="${C.pur}"/><path d="M50 46 L86 26 q-4 14 -12 18 q8 2 12 8 q-10 2 -16 8 q4 6 2 12 q-8 -8 -22 -10z" fill="${C.pur}"/><circle cx="50" cy="52" r="14" fill="#361A38"/><path d="M42 40 l4 -8 4 8z M58 40 l-4 -8 -4 8z" fill="#361A38"/><circle cx="45" cy="50" r="2.5" fill="${C.sig}"/><circle cx="55" cy="50" r="2.5" fill="${C.sig}"/></svg>`,
+  goblin:`<svg viewBox="0 0 100 100"><path d="M20 40 l14 -6 M80 40 l-14 -6" stroke="${C.green}" stroke-width="10" stroke-linecap="round"/><circle cx="50" cy="38" r="16" fill="${C.green}"/><path d="M50 52 q-14 2 -16 16 l-4 20 h40 l-4 -20 q-2 -14 -16 -16z" fill="#3F7A3D"/><rect x="66" y="52" width="7" height="30" rx="3" fill="#7A5230" transform="rotate(18 70 66)"/><path d="M70 44 l10 10 -6 4z" fill="${C.grey}"/></svg>`,
+  mimic:`<svg viewBox="0 0 100 100"><path d="M22 46 h56 v24 q0 8 -8 8 h-40 q-8 0 -8 -8z" fill="${C.gold}"/><path d="M22 46 q-4 -22 28 -22 q32 0 28 22 l-4 6 h-48z" fill="#D89A1F"/><path d="M24 50 h52 l-6 10 -6 -8 -7 9 -7 -9 -7 9 -7 -9 -6 8z" fill="${C.white}"/><path d="M40 58 q12 16 26 10 q6 12 -8 14 q-14 2 -18 -10z" fill="${C.pur}"/><circle cx="50" cy="34" r="4" fill="${C.sig}"/><circle cx="30" cy="66" r="3" fill="#BFE8E6"/><circle cx="74" cy="60" r="3" fill="#BFE8E6"/></svg>`,
+  gargoyle:`<svg viewBox="0 0 100 100"><path d="M50 40 L16 22 q2 16 14 22 l-10 8 q12 4 20 2z M50 40 L84 22 q-2 16 -14 22 l10 8 q-12 4 -20 2z" fill="#6B7C85"/><path d="M50 34 q-16 2 -18 18 l-6 28 h48 l-6 -28 q-2 -16 -18 -18z" fill="${C.grey}"/><circle cx="50" cy="34" r="13" fill="#6B7C85"/><path d="M40 26 l-4 -12 8 6z M60 26 l4 -12 -8 6z" fill="#6B7C85"/><circle cx="45" cy="33" r="2.5" fill="${C.gold}"/><circle cx="55" cy="33" r="2.5" fill="${C.gold}"/></svg>`,
+  witch:`<svg viewBox="0 0 100 100"><path d="M50 8 l-14 26 h28z" fill="${C.pur}"/><path d="M28 34 h44 l-4 6 h-36z" fill="#361A38"/><circle cx="50" cy="46" r="10" fill="${C.skin}"/><path d="M50 56 q-14 2 -16 16 l-5 18 h42 l-5 -18 q-2 -14 -16 -16z" fill="${C.pur}"/><circle cx="72" cy="62" r="7" fill="${C.teal}"/><rect x="70" y="68" width="4" height="20" rx="2" fill="#7A5230"/></svg>`,
+  knight:`<svg viewBox="0 0 100 100"><path d="M50 14 q4 -8 12 -8 q-2 8 -4 12z" fill="${C.sig}"/><path d="M50 16 q-13 0 -13 14 v6 h26 v-6 q0 -14 -13 -14z" fill="#22303A"/><rect x="41" y="30" width="18" height="4" fill="${C.sig}"/><path d="M50 40 q-16 2 -18 18 l-5 26 h46 l-5 -26 q-2 -16 -18 -18z" fill="#16323F"/><path d="M50 44 v36" stroke="#22303A" stroke-width="5"/><rect x="70" y="26" width="6" height="46" rx="3" fill="#B8C4CB"/><rect x="64" y="66" width="18" height="6" rx="3" fill="#7A5230"/></svg>`,
+  maou:`<svg viewBox="0 0 100 100"><path d="M30 26 q-12 -14 -6 -22 q10 4 14 16z M70 26 q12 -14 6 -22 q-10 4 -14 16z" fill="#231025"/><path d="M50 18 q-18 0 -20 20 l-8 46 h56 l-8 -46 q-2 -20 -20 -20z" fill="${C.pur}"/><path d="M50 24 q-12 0 -13 14 l-5 40 h36 l-5 -40 q-1 -14 -13 -14z" fill="#361A38"/><circle cx="44" cy="38" r="3" fill="${C.sig}"/><circle cx="56" cy="38" r="3" fill="${C.sig}"/><circle cx="50" cy="66" r="9" fill="${C.sig}"/><circle cx="50" cy="66" r="5" fill="${C.gold}"/><path d="M22 60 q-8 8 -4 18 M78 60 q8 8 4 18" stroke="#231025" stroke-width="7" stroke-linecap="round" fill="none"/></svg>`,
+  crown:`<svg viewBox="0 0 100 100"><path d="M20 66 l-6 -34 18 14 18 -26 18 26 18 -14 -6 34z" fill="${C.gold}"/><rect x="14" y="66" width="72" height="12" rx="4" fill="#D89A1F"/><circle cx="50" cy="46" r="5" fill="${C.sig}"/></svg>`,
+  skull:`<svg viewBox="0 0 100 100"><path d="M50 16 q-26 0 -26 26 q0 14 10 20 v12 h32 v-12 q10 -6 10 -20 q0 -26 -26 -26z" fill="${C.white}"/><circle cx="40" cy="42" r="7" fill="${C.ink}"/><circle cx="60" cy="42" r="7" fill="${C.ink}"/><path d="M50 52 l5 8 h-10z" fill="${C.ink}"/><rect x="42" y="66" width="4" height="8" fill="${C.ink}"/><rect x="54" y="66" width="4" height="8" fill="${C.ink}"/></svg>`,
+  // カードアイコン
+  i_sword:`<svg viewBox="0 0 100 100"><path d="M62 14 l24 24 -36 36 -14 4 -8 8 -6 -6 8 -8 4 -14z" fill="${C.ink}"/><path d="M62 14 l24 24 -8 8 -24 -24z" fill="${C.sig}"/></svg>`,
+  i_dsword:`<svg viewBox="0 0 100 100"><path d="M26 14 L70 58 l-4 12 -12 4 L10 30 z" fill="${C.ink}"/><path d="M74 14 L30 58 l4 12 12 4 L90 30 z" fill="${C.sig}"/></svg>`,
+  i_shield:`<svg viewBox="0 0 100 100"><path d="M50 12 q18 8 32 8 q0 44 -32 64 q-32 -20 -32 -64 q14 0 32 -8z" fill="${C.blue||'#2D6FD1'}"/><path d="M50 22 q12 6 22 6 q0 32 -22 46z" fill="#1F55A6"/></svg>`,
+  i_heal:`<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="34" fill="${C.teal}"/><rect x="44" y="30" width="12" height="40" rx="4" fill="#fff"/><rect x="30" y="44" width="40" height="12" rx="4" fill="#fff"/></svg>`,
+  i_gem:`<svg viewBox="0 0 100 100"><path d="M50 12 L82 40 50 88 18 40z" fill="${C.teal}"/><path d="M50 12 L66 40 50 88 34 40z" fill="#67D3CD"/></svg>`,
+  i_pm:`<svg viewBox="0 0 100 100"><rect x="14" y="14" width="52" height="52" rx="12" fill="${C.white}" stroke="${C.ink}" stroke-width="6"/><circle cx="40" cy="40" r="7" fill="${C.ink}"/><path d="M70 58 h24 M82 46 v24" stroke="${C.sig}" stroke-width="9" stroke-linecap="round"/></svg>`,
+  i_flip:`<svg viewBox="0 0 100 100"><rect x="18" y="18" width="48" height="48" rx="11" fill="${C.white}" stroke="${C.ink}" stroke-width="6"/><circle cx="42" cy="42" r="6" fill="${C.ink}"/><path d="M60 78 a26 26 0 0 0 26 -26 m0 0 l-9 6 m9 -6 l6 9" stroke="${C.pur}" stroke-width="8" fill="none" stroke-linecap="round"/></svg>`,
+  i_fate:`<svg viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" rx="13" fill="${C.gold}"/><g fill="${C.ink}"><circle cx="35" cy="35" r="6"/><circle cx="65" cy="35" r="6"/><circle cx="35" cy="65" r="6"/><circle cx="65" cy="65" r="6"/><circle cx="35" cy="50" r="6"/><circle cx="65" cy="50" r="6"/></g></svg>`,
+  i_meteor:`<svg viewBox="0 0 100 100"><circle cx="62" cy="62" r="20" fill="${C.sig}"/><circle cx="56" cy="58" r="5" fill="#B33015"/><circle cx="70" cy="68" r="4" fill="#B33015"/><path d="M14 14 L46 46 M30 10 L52 32 M10 34 L34 58" stroke="${C.gold}" stroke-width="8" stroke-linecap="round"/></svg>`,
+  i_eye:`<svg viewBox="0 0 100 100"><path d="M50 26 q28 0 40 24 q-12 24 -40 24 q-28 0 -40 -24 q12 -24 40 -24z" fill="${C.pur}"/><circle cx="50" cy="50" r="13" fill="${C.white}"/><circle cx="50" cy="50" r="7" fill="${C.sig}"/></svg>`,
+  i_dragon:`<svg viewBox="0 0 100 100"><path d="M26 60 q-8 -30 24 -40 q-4 10 2 14 q22 -6 34 12 q-14 -2 -18 6 q16 8 14 28 q-10 -12 -22 -10 q2 12 -8 18 q-2 -12 -12 -16 q-8 4 -14 -2 q6 -4 0 -10z" fill="${C.sig}"/><circle cx="60" cy="46" r="4" fill="${C.ink}"/></svg>`,
+  i_drain:`<svg viewBox="0 0 100 100"><path d="M50 16 q22 26 22 44 a22 22 0 1 1 -44 0 q0 -18 22 -44z" fill="${C.pur}"/><path d="M50 34 q12 16 12 26 a12 12 0 1 1 -24 0 q0 -10 12 -26z" fill="${C.sig}"/></svg>`,
+  i_fist:`<svg viewBox="0 0 100 100"><rect x="24" y="34" width="52" height="40" rx="14" fill="${C.skin}"/><rect x="24" y="34" width="14" height="40" rx="7" fill="#E0AF83"/><path d="M40 34 v40 M52 34 v40 M64 34 v40" stroke="#D89A6A" stroke-width="4"/><path d="M76 44 q14 6 0 20" stroke="${C.sig}" stroke-width="7" fill="none" stroke-linecap="round"/></svg>`,
+  titleHero:`<svg viewBox="0 0 360 300">
+    <!-- 月 -->
+    <circle cx="264" cy="82" r="60" fill="${C.teal}"/>
+    <circle cx="284" cy="70" r="12" fill="rgba(255,255,255,.25)"/>
+    <circle cx="248" cy="98" r="7" fill="rgba(22,50,63,.12)"/>
+    <!-- 星 -->
+    <g fill="${C.gold}">
+      <rect x="56" y="42" width="7" height="7" rx="1" transform="rotate(45 59 45)"/>
+      <rect x="118" y="20" width="5" height="5" rx="1" transform="rotate(45 120 22)"/>
+      <rect x="330" y="26" width="5" height="5" rx="1" transform="rotate(45 332 28)"/>
+      <rect x="26" y="104" width="5" height="5" rx="1" transform="rotate(45 28 106)"/>
+      <rect x="196" y="36" width="5" height="5" rx="1" transform="rotate(45 198 38)"/>
+    </g>
+    <!-- 魔王城シルエット -->
+    <g fill="${C.ink}">
+      <rect x="14" y="152" width="34" height="88"/>
+      <path d="M14 152 h34 v-11 h-8 v6 h-9 v-6 h-9 v6 h-8z"/>
+      <rect x="56" y="126" width="42" height="114"/>
+      <path d="M56 126 h42 v-12 h-9 v7 h-8 v-7 h-8 v7 h-9 v-7 h-8z"/>
+      <rect x="96" y="92" width="52" height="148"/>
+      <path d="M96 92 h52 v-14 h-11 v8 h-10 v-8 h-10 v8 h-11 v-8 h-10z"/>
+      <rect x="152" y="158" width="34" height="82"/>
+      <rect x="214" y="138" width="40" height="102"/>
+      <path d="M214 138 h40 v-11 h-9 v6 h-8 v-6 h-8 v6 h-8 v-6 h-7z"/>
+      <rect x="262" y="166" width="28" height="74"/>
+      <rect x="298" y="134" width="44" height="106"/>
+      <path d="M298 134 h44 v-12 h-9 v7 h-9 v-7 h-9 v7 h-9 v-7 h-8z"/>
+    </g>
+    <!-- 旗 -->
+    <rect x="120" y="58" width="3" height="22" fill="${C.ink}"/>
+    <path d="M123 58 l20 6 -20 6z" fill="${C.sig}"/>
+    <!-- 窓明かり -->
+    <g fill="${C.gold}" opacity=".9">
+      <rect x="70" y="146" width="7" height="11" rx="2"/>
+      <rect x="228" y="158" width="7" height="11" rx="2"/>
+      <rect x="314" y="156" width="7" height="11" rx="2"/>
+      <rect x="164" y="176" width="7" height="11" rx="2"/>
+    </g>
+    <!-- 地面 -->
+    <rect x="0" y="238" width="360" height="10" fill="${C.ink}"/>
+    <ellipse cx="120" cy="247" rx="72" ry="7" fill="rgba(22,50,63,.16)"/>
+    <!-- 巨大ダイス(姫の足場) -->
+    <g transform="rotate(-9 118 196)">
+      <rect x="66" y="144" width="104" height="104" rx="20" fill="${C.white}"/>
+      <rect x="66" y="144" width="104" height="104" rx="20" fill="none" stroke="rgba(22,50,63,.14)" stroke-width="3"/>
+      <circle cx="92" cy="170" r="9" fill="${C.ink}"/>
+      <circle cx="144" cy="170" r="9" fill="${C.ink}"/>
+      <circle cx="118" cy="196" r="10" fill="${C.sig}"/>
+      <circle cx="92" cy="222" r="9" fill="${C.ink}"/>
+      <circle cx="144" cy="222" r="9" fill="${C.ink}"/>
+    </g>
+    <!-- 姫(ダイスの上に立つ) -->
+    <g transform="translate(82,64) scale(.74)">
+      <path d="M50 12 q-16 0 -18 20 l-6 56 h48 l-6 -56 q-2 -20 -18 -20z" fill="${C.gold}"/>
+      <circle cx="50" cy="26" r="12" fill="${C.skin}"/>
+      <path d="M38 24 q0 -12 12 -12 q12 0 12 12 l-2 -2 q-10 6 -20 0z" fill="${C.gold}"/>
+      <path d="M50 40 q-14 0 -16 14 l-8 34 h48 l-8 -34 q-2 -14 -16 -14z" fill="${C.white}"/>
+      <path d="M40 56 l-10 32 h14z M60 56 l10 32 h-14z" fill="#DCE9EC"/>
+      <circle cx="50" cy="42" r="3" fill="${C.teal}"/>
+    </g>
+    <!-- 転がる小ダイス -->
+    <g transform="rotate(14 225 227)"><rect x="212" y="214" width="26" height="26" rx="7" fill="${C.ink}"/><circle cx="220" cy="222" r="3.2" fill="${C.white}"/><circle cx="230" cy="232" r="3.2" fill="${C.white}"/></g>
+    <g transform="rotate(-16 268 230)"><rect x="256" y="218" width="21" height="21" rx="6" fill="${C.ink}"/><circle cx="266.5" cy="228.5" r="3" fill="${C.sig}"/></g>
+  </svg>`,
+};
+function dieFace(v,cls="pip"){
+  const P={1:[[50,50]],2:[[30,30],[70,70]],3:[[26,26],[50,50],[74,74]],4:[[30,30],[70,30],[30,70],[70,70]],5:[[28,28],[72,28],[50,50],[28,72],[72,72]],6:[[30,26],[70,26],[30,50],[70,50],[30,74],[70,74]]};
+  return (P[v]||[]).map(p=>`<div class="${cls}" style="left:${p[0]}%;top:${p[1]}%;transform:translate(-50%,-50%)"></div>`).join("");
+}
+function miniDieSVG(v){
+  const P={1:[[50,50]],2:[[32,32],[68,68]],3:[[28,28],[50,50],[72,72]],4:[[32,32],[68,32],[32,68],[68,68]],5:[[30,30],[70,30],[50,50],[30,70],[70,70]],6:[[32,28],[68,28],[32,50],[68,50],[32,72],[68,72]]};
+  return `<svg class="mini" viewBox="0 0 100 100">${P[v].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="9" fill="#16323F"/>`).join("")}</svg>`;
+}
+</script>
+<script id="game-logic">
+"use strict";
+/* ============================================================
+   CARDS — 純粋定義(条件・効果は副作用なし)
+   slot条件: any / max:n / min:n / eq:n
+   group  : pair / sum:n / consec
+============================================================ */
+const CARDS = {
+  /* --- 姫みずからの技 --- */
+  slash:   {name:"姫の一閃", type:"atk",  icon:"i_sword",  slots:[{t:"any"}],                       desc:"ダイスの目ぶんの\nダメージを与える",
+            fx:v=>({dmg:v[0]})},
+  guard:   {name:"王家の守り",type:"skill",icon:"i_shield", slots:[{t:"any"}],                       desc:"ダイスの目ぶんの\nブロックを得る",
+            fx:v=>({block:v[0]})},
+  adjust:  {name:"王家の采配",type:"manip",icon:"i_pm",     manip:"pm1",                             desc:"ダイス1個の目を\n+1 または −1 する"},
+  cheat:   {name:"イカサマ", type:"manip",icon:"i_flip",  manip:"flip",                            desc:"ダイス1個を裏返す\n(1⇄6, 2⇄5, 3⇄4)"},
+  /* --- 服従させた魔物の使役 --- */
+  dbl:     {name:"ゴブリン強盗団",type:"atk",icon:"goblin",summon:true,slots:[{t:"max",n:3},{t:"max",n:3}], desc:"2つの目の合計ダメージ\n同じ目なら +3",
+            fx:v=>({dmg:v[0]+v[1]+(v[0]===v[1]?3:0)})},
+  pierce:  {name:"ケンタウロス",type:"atk",icon:"i_dsword",summon:true,slots:[{t:"eq",n:4}],        desc:"8ダメージを与える\n(つらぬき)",
+            fx:()=>({dmg:8})},
+  rage:    {name:"バーバリアン",type:"atk",icon:"i_fist",summon:true,slots:[{t:"eq",n:6}],          desc:"10ダメージを与える\n(憤怒)",
+            fx:()=>({dmg:10})},
+  bshield: {name:"ガーゴイル",type:"skill",icon:"gargoyle",summon:true,slots:[{t:"min",n:4}],       desc:"目 +3 のブロックを得る\n(石の護り)",
+            fx:v=>({block:v[0]+3})},
+  lheal:   {name:"夜の魔女", type:"skill",icon:"witch",summon:true,slots:[{t:"max",n:3}],           desc:"目 +2 のHPを回復する\n(月の秘薬)",
+            fx:v=>({heal:v[0]+2})},
+  alchemy: {name:"ドワーフ採掘団",type:"skill",icon:"i_gem",summon:true,slots:[{t:"any"}],          desc:"魔石を「目の半分\n(切上げ)+1」得る",
+            fx:v=>({gems:Math.ceil(v[0]/2)+1})},
+  drain:   {name:"アビスバット",type:"atk",icon:"bat",summon:true,slots:[{t:"any"}],                desc:"目ぶんのダメージ\n半分(切捨て)吸血回復",
+            fx:v=>({dmg:v[0],heal:Math.floor(v[0]/2)})},
+  force:   {name:"サイクロプス",type:"atk",icon:"i_fist",summon:true,slots:[{t:"any"},{t:"any"}],group:{t:"sum",n:8},rare:true,
+            desc:"10ダメージを与える\n(力まかせ)", fx:()=>({dmg:10})},
+  meteor:  {name:"星魔道士", type:"atk",icon:"i_meteor",summon:true,slots:[{t:"any"},{t:"any"},{t:"any"}],group:{t:"sum",n:12},rare:true,
+            desc:"16ダメージを与える\n(メテオ・ストライク)", fx:()=>({dmg:16})},
+  prophecy:{name:"予言者",   type:"skill",icon:"i_eye",summon:true,slots:[{t:"any"},{t:"any"}],group:{t:"pair"},rare:true,
+            desc:"次に与えるダメージを\n2倍にする(予知夢)", fx:()=>({buff:"x2"})},
+  dragon:  {name:"ドラゴン", type:"atk",icon:"i_dragon",summon:true,slots:[{t:"any"},{t:"any"}],group:{t:"consec"},rare:true,
+            desc:"12ダメージを与える\n(ドラゴンブレス)", fx:()=>({dmg:12})},
+  fate:    {name:"ミミック", type:"manip",icon:"mimic",summon:true,manip:"set6",rare:true,          desc:"ダイス1個の目を\n6 にする(擬態)"},
+  wall:    {name:"ダークナイト",type:"skill",icon:"knight",summon:true,slots:[{t:"any"},{t:"any"}],rare:true,
+            desc:"2つの目の合計 +2 の\nブロックを得る(鉄壁)", fx:v=>({block:v[0]+v[1]+2})},
+};
+const COMMON_POOL=["dbl","pierce","rage","bshield","lheal","alchemy","drain","adjust","cheat"];
+const RARE_POOL  =["force","meteor","prophecy","dragon","fate","wall"];
+const START_DECK =["slash","slash","slash","slash","guard","guard","adjust","adjust","cheat"];
+
+function condLabel(c){
+  if(c.t==="any")return "?";
+  if(c.t==="max")return "1-"+c.n;
+  if(c.t==="min")return c.n+"+";
+  if(c.t==="eq") return String(c.n);
+  return "?";
+}
+function groupLabel(g){
+  if(!g)return "";
+  if(g.t==="pair")return "同じ目を2つ";
+  if(g.t==="sum")return "合計 "+g.n+" 以上";
+  if(g.t==="consec")return "連番で2つ";
+  return "";
+}
+function checkCond(c,v){
+  if(c.t==="any")return true;
+  if(c.t==="max")return v<=c.n;
+  if(c.t==="min")return v>=c.n;
+  if(c.t==="eq") return v===c.n;
+  return false;
+}
+function checkGroup(g,vals){
+  if(!g)return true;
+  if(g.t==="pair")  return vals[0]===vals[1];
+  if(g.t==="sum")   return vals.reduce((a,b)=>a+b,0)>=g.n;
+  if(g.t==="consec")return Math.abs(vals[0]-vals[1])===1;
+  return true;
+}
+/* group が満たせる見込みがあるか(最後の1枠を埋める判定) */
+function canFinalize(card, tentativeVals){ return checkGroup(card.group, tentativeVals); }
+
+/* ============================================================
+   ENEMIES
+============================================================ */
+const ENEMIES = {
+  slime:   {name:"スライム",   svg:"slime",   hp:9,  lv:1, gem:3,  acts:[{a:"atk",n:3},{a:"atk",n:4},{a:"atk",n:3}]},
+  bat:     {name:"アビスバット",svg:"bat",    hp:8,  lv:1, gem:3,  acts:[{a:"atk",n:2,x:2},{a:"atk",n:3},{a:"atk",n:2,x:2}]},
+  goblin:  {name:"ゴブリン",   svg:"goblin",  hp:13, lv:1, gem:4,  acts:[{a:"atk",n:4},{a:"guard",n:4},{a:"atk",n:6}]},
+  mimic:   {name:"ミミック",   svg:"mimic",   hp:15, lv:2, gem:6,  acts:[{a:"lock",k:1},{a:"atk",n:5},{a:"atk",n:7}]},
+  gargoyle:{name:"ガーゴイル", svg:"gargoyle",hp:19, lv:2, gem:7,  acts:[{a:"guard",n:5},{a:"atk",n:6},{a:"atk",n:8}]},
+  witch:   {name:"夜の魔女",   svg:"witch",   hp:17, lv:2, gem:7,  acts:[{a:"atk",n:5},{a:"heal",n:5},{a:"atk",n:7}]},
+  knight:  {name:"ダークナイト",svg:"knight", hp:28, lv:3, gem:14, elite:true,
+            acts:[{a:"atk",n:7},{a:"lock",k:1},{a:"big",n:12},{a:"atk",n:8}]},
+  maou:    {name:"魔王",       svg:"maou",    hp:50, lv:5, gem:CFG.GEM_CLEAR_BONUS, boss:true,
+            acts:[{a:"atk",n:8},{a:"lock",k:2},{a:"big",n:14},{a:"atk",n:9},{a:"heal",n:6}]},
+};
+const TIER1=["slime","bat","goblin"];
+const TIER2=["mimic","gargoyle","witch"];
+
+/* ============================================================
+   META(永続) / RUN(1周)
+============================================================ */
+let meta = store.get("dp_meta",{gems:0,up:{hp:0,gem:0,blood:0,dice4:0}});
+function saveMeta(){ store.set("dp_meta",meta); }
+function metaLv(id){ return meta.up[id]||0; }
+
+let run=null, uidSeq=0;
+function newRun(){
+  const maxhp=CFG.PLAYER_HP + metaLv("hp")*5;
+  run={
+    hp:maxhp, maxhp,
+    gems: metaLv("gem")*8,
+    deck: shuffle(START_DECK.slice()),
+    discard:[], hand:[],
+    dice:[], step:0,
+    block:0, buffX2:false,
+    pendingLock:0,
+    enemy:null, phase:"map", busy:false,
+    rerollHP: metaLv("blood")?1:CFG.REROLL_HP,
+    diceN: CFG.DICE + (metaLv("dice4")?1:0),
+    lv:1, exp:0, handN:CFG.HAND,
+  };
+}
+/* 姫レベル(純関数群) */
+function needExp(lv){ return lv*2; }
+function gainExp(n){
+  run.exp+=n;
+  const ups=[];
+  while(run.lv<CFG.LEVEL.MAX && run.exp>=needExp(run.lv)){
+    run.exp-=needExp(run.lv);
+    run.lv++;
+    run.maxhp+=CFG.LEVEL.HP_GAIN;
+    run.hp=Math.min(run.maxhp,run.hp+CFG.LEVEL.HP_GAIN);
+    let extra="最大HP +"+CFG.LEVEL.HP_GAIN;
+    if(run.lv===CFG.LEVEL.HAND_LV){run.handN++;extra+=" / 手札 +1";}
+    if(run.lv===CFG.LEVEL.DICE_LV||run.lv===CFG.LEVEL.DICE_LV2){run.diceN++;extra+=" / ダイス +1";}
+    ups.push({lv:run.lv,extra});
+  }
+  return ups;
+}
+
+/* ============================================================
+   デッキ操作
+============================================================ */
+function drawHand(){
+  // 残った手札は必ず捨て札へ(消滅バグ対策)
+  run.hand.forEach(h=>run.discard.push(h.id));
+  run.hand=[];
+  for(let i=0;i<run.handN;i++){
+    if(!run.deck.length){
+      if(!run.discard.length)break;
+      run.deck=shuffle(run.discard);run.discard=[];
+    }
+    run.hand.push({uid:++uidSeq,id:run.deck.pop(),placed:[]});
+  }
+  guaranteeAttack();
+  // チュートリアル初回は説明しやすい固定手札
+  if(tut&&tut.rig){
+    tut.rig=false;
+    run.deck=shuffle(["slash","slash","guard","adjust"]);
+    run.discard=[];
+    run.hand=["slash","guard","adjust","slash","cheat"].map(id=>({uid:++uidSeq,id,placed:[]}));
+  }
+}
+/* 手札に攻撃カードが1枚もなければ、山札/捨て札から1枚を保証交換 */
+function guaranteeAttack(){
+  if(run.hand.some(h=>CARDS[h.id].type==="atk"))return;
+  let src=run.deck, idx=src.findIndex(id=>CARDS[id].type==="atk");
+  if(idx<0){src=run.discard;idx=src.findIndex(id=>CARDS[id].type==="atk");}
+  if(idx<0||!run.hand.length)return; // デッキに攻撃が存在しない
+  const atkId=src.splice(idx,1)[0];
+  // 技カードを優先して戻す(操作カードは手数として温存)
+  let swapI=run.hand.findIndex(h=>CARDS[h.id].type==="skill");
+  if(swapI<0)swapI=rnd(run.hand.length);
+  src.push(run.hand[swapI].id);
+  run.hand[swapI]={uid:++uidSeq,id:atkId,placed:[]};
+}
+function discardHand(){
+  run.hand.forEach(h=>run.discard.push(h.id));
+  run.hand=[];
+}
+function allDeckIds(){ return run.deck.concat(run.discard, run.hand.map(h=>h.id)); }
+
+/* ============================================================
+   DOM refs
+============================================================ */
+const app=$("#app"), hud=$("#hud"), stage=$("#stage"), intentEl=$("#intent"),
+      trayEl=$("#dicetray"), handEl=$("#hand"), overlay=$("#overlay"),
+      veil=$("#manipveil"), titleEl=$("#title"),
+      btnReroll=$("#btnReroll"), btnEnd=$("#btnEnd");
+
+let selDie=null, manipCard=null;
+
+function setChromeVisible(on){
+  [intentEl,trayEl,$("#handwrap"),$("#controls")].forEach(el=>el.style.display=on?"":"none");
+}
+
+/* ============================================================
+   HUD
+============================================================ */
+function depthName(step){
+  if(step>=CFG.TOTAL_STEPS)return "城門";
+  const names=["地下牢","地下牢","大広間","大広間","回廊","回廊","宝物庫","城壁","城壁","城門"];
+  return names[Math.min(step,names.length-1)];
+}
+function renderHUD(){
+  const rate=run.hp/run.maxhp;
+  hud.innerHTML=`
+    <div class="deckbtn" id="homebtn">⌂</div>
+    <div class="depth">${run.step>=CFG.TOTAL_STEPS-1?"⚔ 城門":depthName(run.step)} ${Math.min(run.step+1,CFG.TOTAL_STEPS)}/${CFG.TOTAL_STEPS}</div>
+    <div class="hpwrap">
+      <div class="hplabel"><span>姫 Lv${run.lv} <span style="color:#C08A10">EXP ${run.exp}/${needExp(run.lv)}</span></span><span>${run.hp} / ${run.maxhp}</span></div>
+      <div class="hpbar"><div class="fill ${rate<=.3?"low":""}" style="width:${Math.max(0,rate*100)}%"></div></div>
+    </div>
+    <span class="blockchip ${run.block>0?"on":""}">🛡 ${run.block}</span>
+    <div class="gems">${SVG.i_gem.replace("<svg",'<svg width="16" height="16"')} ${run.gems}</div>
+    <div class="deckbtn" id="deckbtn">▤ ${allDeckIds().length}</div>`;
+  const db=$("#deckbtn");
+  if(db)db.addEventListener("pointerdown",showDeckView);
+  const hb=$("#homebtn");
+  if(hb)hb.addEventListener("pointerdown",showQuitConfirm);
+}
+/* タイトルへ戻る(中断) */
+function showQuitConfirm(){
+  if(run.busy)return;
+  AudioSys.tap();
+  openPanel(`
+    <h2>タイトルへ戻る</h2>
+    <div class="plead">この脱出は中断されます。<br>所持している魔石 ◆${run.gems} は蓄積されます。</div>
+    <div class="actions">
+      <button class="btn ghost" data-no>続ける</button>
+      <button class="btn sig" data-yes>タイトルへ</button>
+    </div>`);
+  overlay.querySelector("[data-no]").addEventListener("pointerdown",()=>{AudioSys.tap();closePanel();});
+  overlay.querySelector("[data-yes]").addEventListener("pointerdown",()=>{
+    meta.gems+=run.gems;saveMeta();
+    tut=null;tutHide();
+    AudioSys.tap();closePanel();showTitle();
+  });
+}
+/* デッキ一覧(山札+手札+捨て札) */
+function showDeckView(){
+  if(run.busy)return;
+  AudioSys.tap();
+  const ids=allDeckIds();
+  const counts={};
+  ids.forEach(id=>counts[id]=(counts[id]||0)+1);
+  const typeOrder={atk:0,skill:1,manip:2};
+  const order=Object.keys(counts).sort((a,b)=>
+    (typeOrder[CARDS[a].type]-typeOrder[CARDS[b].type])||((CARDS[a].rare?1:0)-(CARDS[b].rare?1:0)));
+  openPanel(`
+    <h2>デッキ一覧</h2>
+    <div class="plead">全 ${ids.length} 枚(山札・手札・捨て札の合計)</div>
+    <div class="decklist">${order.map(id=>`
+      <div class="card ${CARDS[id].manip?"manipcard":""}">${cardHTML(id,{showRare:true})}<span class="countb">×${counts[id]}</span></div>`).join("")}</div>
+    <div class="actions"><button class="btn teal" data-close>閉じる</button></div>`);
+  overlay.querySelector("[data-close]").addEventListener("pointerdown",()=>{AudioSys.tap();closePanel();});
+}
+/* 山札 / 捨て札の中身 */
+function showPileView(kind){
+  if(run.busy)return;
+  AudioSys.tap();
+  const ids=kind==="deck"?run.deck:run.discard;
+  const title=kind==="deck"?"山札":"捨て札";
+  const note=kind==="deck"
+    ?"引く順序は秘密 ─ 何が眠っているかだけ確認できる"
+    :"使ったカード ─ 山札が尽きるとシャッフルされて戻る";
+  const counts={};
+  ids.forEach(id=>counts[id]=(counts[id]||0)+1);
+  const typeOrder={atk:0,skill:1,manip:2};
+  const order=Object.keys(counts).sort((a,b)=>
+    (typeOrder[CARDS[a].type]-typeOrder[CARDS[b].type])||((CARDS[a].rare?1:0)-(CARDS[b].rare?1:0)));
+  openPanel(`
+    <h2>${title} ─ ${ids.length}枚</h2>
+    <div class="plead">${note}</div>
+    ${ids.length?`<div class="decklist">${order.map(id=>`
+      <div class="card ${CARDS[id].manip?"manipcard":""}">${cardHTML(id,{showRare:true})}<span class="countb">×${counts[id]}</span></div>`).join("")}</div>`
+    :`<div style="text-align:center;font-weight:900;color:var(--ink2);padding:20px 0">─ 空 ─</div>`}
+    <div class="actions"><button class="btn teal" data-close>閉じる</button></div>`);
+  overlay.querySelector("[data-close]").addEventListener("pointerdown",()=>{AudioSys.tap();closePanel();});
+}
+
+/* ============================================================
+   ENEMY 描画
+============================================================ */
+function renderEnemy(){
+  const e=run.enemy;
+  stage.innerHTML=`
+    <div class="enemyCard" id="ecard">
+      <div class="circle">${SVG[e.svg]}</div>
+      <div><span class="nametag">${e.name}<span class="lv">LV ${e.lv}</span></span></div>
+      <div class="ehp">
+        <div class="ehpbar"><div class="fill" id="ehpfill" style="width:${e.hp/e.max*100}%"></div></div>
+        <div class="ehpnum"><span id="ehpnum">${e.hp} / ${e.max}</span><span class="eblock ${e.block>0?"on":""}" id="eblock">🛡 ${e.block}</span></div>
+      </div>
+    </div>`;
+}
+function updateEnemyBars(){
+  const e=run.enemy;
+  const f=$("#ehpfill"),n=$("#ehpnum"),b=$("#eblock");
+  if(f)f.style.width=Math.max(0,e.hp/e.max*100)+"%";
+  if(n)n.textContent=`${e.hp} / ${e.max}`;
+  if(b){b.textContent="🛡 "+e.block;b.classList.toggle("on",e.block>0);}
+}
+function intentText(act){
+  if(act.a==="atk") return {h:`⚔ 攻撃 <span class="ival">${act.n}</span>${act.x?` × ${act.x}`:""}`,warn:false};
+  if(act.a==="big") return {h:`💥 大技の予兆… <span class="ival">${act.n}</span> ダメージ!`,warn:true};
+  if(act.a==="guard")return {h:`🛡 防御態勢 <span class="ival">${act.n}</span>`,warn:false};
+  if(act.a==="heal")return {h:`✚ 回復 <span class="ival">${act.n}</span>`,warn:false};
+  if(act.a==="lock")return {h:`⛓ 呪縛 — 次のダイス <span class="ival">${act.k}</span> 個を封じる`,warn:true};
+  return {h:"…",warn:false};
+}
+function renderIntent(){
+  const e=run.enemy;
+  const it=intentText(e.acts[e.actIdx%e.acts.length]);
+  intentEl.innerHTML=it.h;
+  intentEl.classList.toggle("warn",it.warn);
+  if(it.warn)AudioSys.warn();
+}
+
+/* ============================================================
+   DICE 描画・操作
+============================================================ */
+function rollDice(){
+  run.dice=[];
+  for(let i=0;i<run.diceN;i++)run.dice.push({id:i,v:d6(),locked:false,spent:false,placed:null});
+  // 呪縛
+  let k=run.pendingLock;run.pendingLock=0;
+  const free=run.dice.slice();
+  while(k>0&&free.length){const d=free.splice(rnd(free.length),1)[0];d.locked=true;k--;}
+  AudioSys.roll();
+  renderDice(true);
+}
+function renderDice(rolling=false){
+  trayEl.innerHTML="";
+  trayEl.classList.toggle("n6",run.dice.length>=6);
+  // 山札・捨て札パイル
+  const mkPile=(cls,label,count)=>
+    `<div class="pile ${cls} ${count===0?"empty":""}" data-pile="${cls}">
+      <div class="pstack"><i></i><i></i><i></i><span class="pcount">${count}</span></div>
+      <span class="plabel">${label}</span>
+    </div>`;
+  trayEl.insertAdjacentHTML("beforeend",
+    mkPile("deckp","山札",run.deck.length)+mkPile("discp","捨て札",run.discard.length));
+  trayEl.querySelector(".deckp").addEventListener("pointerdown",()=>showPileView("deck"));
+  trayEl.querySelector(".discp").addEventListener("pointerdown",()=>showPileView("disc"));
+  run.dice.forEach(d=>{
+    const el=document.createElement("div");
+    el.className="die v"+d.v+(d.locked?" locked":"")+(d.spent||d.placed!=null?" spent":"")+(selDie===d.id?" sel":"")+(rolling&&!d.locked?" rolling":"");
+    if(rolling)el.style.animationDelay=(d.id*0.06)+"s";
+    el.innerHTML=dieFace(d.v);
+    el.dataset.id=d.id;
+    el.addEventListener("pointerdown",ev=>onDiePointerDown(ev,d,el));
+    trayEl.appendChild(el);
+  });
+}
+/* ---------- タップ選択 + ドラッグ&ドロップ ---------- */
+const DRAG_THRESH=10, DRAG_LIFT=46;
+let drag=null;
+function onDiePointerDown(ev,d,srcEl){
+  if(run.busy)return;
+  if(!d||d.locked||d.spent||d.placed!=null)return;
+  if(manipCard){applyManip(d);return;}
+  ev.preventDefault();
+  drag={die:d,srcEl,sx:ev.clientX,sy:ev.clientY,moved:false,ghost:null};
+  const mv=e=>{
+    if(!drag)return;
+    e.preventDefault();
+    if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>DRAG_THRESH)startDragGhost();
+    if(drag.moved)moveGhost(e);
+  };
+  const up=e=>{
+    window.removeEventListener("pointermove",mv);
+    window.removeEventListener("pointerup",up);
+    window.removeEventListener("pointercancel",up);
+    if(!drag)return;
+    if(drag.moved)endDrag(e);
+    else{ // 動かさず離した=タップ選択
+      selDie=(selDie===d.id)?null:d.id;
+      AudioSys.select();
+      renderDice();renderHand();
+    }
+    drag=null;
+  };
+  window.addEventListener("pointermove",mv,{passive:false});
+  window.addEventListener("pointerup",up);
+  window.addEventListener("pointercancel",up);
+}
+function startDragGhost(){
+  drag.moved=true;
+  selDie=null;
+  drag.srcEl.classList.add("dragging");
+  const g=document.createElement("div");
+  g.className="die dragghost v"+drag.die.v;
+  g.innerHTML=dieFace(drag.die.v);
+  document.body.appendChild(g);
+  drag.ghost=g;
+  AudioSys.select();
+  // ドロップ先の可否をカードに表示
+  handEl.querySelectorAll(".card").forEach(el=>{
+    const h=run.hand.find(x=>String(x.uid)===el.dataset.uid);
+    if(!h)return;
+    const c=CARDS[h.id];
+    const ok=c.manip? run.dice.some(x=>x===drag.die) : dieFitsCard(h,drag.die.v);
+    el.classList.toggle("droptarget",ok);
+    el.classList.toggle("dimmed",!ok);
+    if(ok&&!c.manip){
+      const st=handCardState(h);
+      const s=el.querySelector(`.slot[data-slot="${st.nextSlot}"]`);
+      if(s)s.classList.add("hint");
+    }
+  });
+}
+function moveGhost(e){
+  const g=drag.ghost;
+  g.style.left=(e.clientX-29)+"px";
+  g.style.top=(e.clientY-29-DRAG_LIFT)+"px";
+  // 手札の端で自動スクロール
+  const r=handEl.getBoundingClientRect();
+  if(e.clientY>r.top-70&&e.clientY<r.bottom+20){
+    if(e.clientX<r.left+56)handEl.scrollLeft-=14;
+    else if(e.clientX>r.right-56)handEl.scrollLeft+=14;
+  }
+}
+function endDrag(e){
+  if(drag.ghost)drag.ghost.remove();
+  drag.srcEl.classList.remove("dragging");
+  // ゴーストは指の上方にあるため、指位置と持ち上げ位置の両方で判定
+  const hitAt=(x,y)=>{
+    const el=document.elementFromPoint(x,y);
+    return el?el.closest(".card"):null;
+  };
+  const cardEl=hitAt(e.clientX,e.clientY-DRAG_LIFT-29)||hitAt(e.clientX,e.clientY);
+  let placed=false;
+  if(cardEl&&cardEl.classList.contains("droptarget")){
+    const h=run.hand.find(x=>String(x.uid)===cardEl.dataset.uid);
+    if(h){
+      const c=CARDS[h.id];
+      if(c.manip){
+        manipCard=h;
+        if(c.manip==="pm1"){veil.classList.add("show");app.classList.add("targeting");}
+        applyManip(drag.die);
+        placed=true;
+      }
+      else placed=placeDieOn(h,drag.die);
+    }
+  }
+  if(!placed&&!manipCard)AudioSys.tap();
+  renderDice();renderHand();
+}
+
+/* ============================================================
+   HAND 描画・スロット配置
+============================================================ */
+function cardHTML(cid, opts={}){
+  const c=CARDS[cid];
+  const slotsHTML=c.slots?`<div class="slots">${c.slots.map((s,i)=>{
+      const pv=opts.placedVals&&opts.placedVals[i];
+      return `<div class="slot ${pv?"filled":""} ${opts.hintSlot===i?"hint":""}" data-slot="${i}">${pv?miniDieSVG(pv)+'<span class="unx">×</span>':condLabel(s)}</div>`;
+    }).join("")}</div>`:`<div class="slots"><div class="slot" style="box-shadow:inset 0 0 0 2px var(--purple)">✦</div></div>`;
+  return `${opts.ready?'<div class="firetag">タップで発動!</div>':""}${c.rare&&opts.showRare?'<span class="rarebadge">RARE</span>':""}
+    <span class="ctype ${c.type} ${c.summon?"summon":""}">${c.summon?"召":c.type==="atk"?"攻":c.type==="skill"?"技":"操"}</span>
+    <div class="cname">${c.name}</div>
+    <div class="cicon">${SVG[c.icon]||""}</div>
+    ${slotsHTML}
+    <div class="grouplabel">${groupLabel(c.group)}&nbsp;</div>
+    <div class="cdesc">${c.desc.replace(/\n/g,"<br>")}</div>`;
+}
+function handCardState(h){
+  const c=CARDS[h.id];
+  if(c.manip)return {ready:false,nextSlot:-1};
+  const filled=h.placed.length;
+  return {ready:filled>=c.slots.length,nextSlot:filled<c.slots.length?filled:-1};
+}
+/* このカードに選択中/ドラッグ中のダイスが置けるか(共通判定) */
+function dieFitsCard(h,dv){
+  const c=CARDS[h.id];
+  if(c.manip)return false;
+  const st=handCardState(h);
+  if(st.nextSlot<0)return false;
+  if(!checkCond(c.slots[st.nextSlot],dv))return false;
+  const tent=h.placed.map(pid=>run.dice.find(x=>x.id===pid).v).concat([dv]);
+  return tent.length<c.slots.length||canFinalize(c,tent);
+}
+function renderHand(){
+  handEl.innerHTML="";
+  run.hand.forEach(h=>{
+    const c=CARDS[h.id];
+    const st=handCardState(h);
+    const el=document.createElement("div");
+    el.className="card"+(st.ready?" ready":"")+(c.manip?" manipcard":"");
+    el.dataset.uid=h.uid;
+    const placedVals=h.placed.map(pid=>run.dice.find(d=>d.id===pid).v);
+    let hintSlot=-1;
+    if(selDie!=null){
+      const dv=run.dice.find(d=>d.id===selDie).v;
+      if(dieFitsCard(h,dv))hintSlot=st.nextSlot;
+    }
+    el.innerHTML=cardHTML(h.id,{placedVals,hintSlot,ready:st.ready});
+    el.addEventListener("pointerdown",ev=>onCardTap(h,el,ev));
+    handEl.appendChild(el);
+  });
+}
+function onCardTap(h,el,ev){
+  if(run.busy)return;
+  const c=CARDS[h.id];
+  AudioSys.tap();
+  if(c.manip){ startManip(h); return; }
+  const st=handCardState(h);
+  // ① 置き済みスロット(×)のタップ → 返却。発動より優先
+  const slotEl=ev.target.closest(".slot");
+  if(slotEl){
+    const idx=parseInt(slotEl.dataset.slot,10);
+    if(idx<h.placed.length){
+      const back=h.placed.splice(idx);
+      back.forEach(pid=>{run.dice.find(d=>d.id===pid).placed=null;});
+      AudioSys.tap();
+      renderDice();renderHand();
+      return;
+    }
+  }
+  // ② 全スロット充填済み → 発動
+  if(st.ready){ fireCard(h,el); return; }
+  // ③ タップ選択中のダイスを配置
+  if(selDie==null){ el.classList.remove("ng");void el.offsetWidth;el.classList.add("ng");return; }
+  const d=run.dice.find(x=>x.id===selDie);
+  if(!placeDieOn(h,d)){
+    el.classList.remove("ng");void el.offsetWidth;el.classList.add("ng");
+    AudioSys.tone(160,.12,"sawtooth",.1);
+    return;
+  }
+  selDie=null;
+  renderDice();renderHand();
+}
+/* 配置の共通ルート(タップ/ドラッグ両対応) */
+function placeDieOn(h,d){
+  if(!dieFitsCard(h,d.v))return false;
+  d.placed=h.uid;
+  h.placed.push(d.id);
+  AudioSys.place();
+  tutNotify("place");
+  return true;
+}
+
+/* ============================================================
+   カード発動と効果適用
+============================================================ */
+async function fireCard(h,el){
+  const c=CARDS[h.id];
+  const vals=h.placed.map(pid=>run.dice.find(d=>d.id===pid).v);
+  run.busy=true;
+  AudioSys.fire();
+  tutNotify("fire");
+  flyCardToEnemy(el);
+  showCutin(c);
+  await wait(400); // カットインの溜め
+  const eff=c.fx(vals);
+  // ダイス消費・カード消費
+  h.placed.forEach(pid=>{const d=run.dice.find(x=>x.id===pid);d.spent=true;d.placed=null;});
+  run.hand=run.hand.filter(x=>x!==h);
+  run.discard.push(h.id);
+  await applyPlayerEffect(eff);
+  renderDice();renderHand();renderHUD();
+  run.busy=false;
+  if(run.enemy&&run.enemy.hp<=0)onEnemyDefeated();
+}
+/* 発動カードを固定レイヤーで敵へ飛ばす(手札の枠にクリップされない) */
+function flyCardToEnemy(el){
+  const r=el.getBoundingClientRect();
+  const clone=el.cloneNode(true);
+  clone.classList.remove("ready","ng");
+  clone.classList.add("flycard");
+  clone.style.left=r.left+"px";
+  clone.style.top=r.top+"px";
+  clone.style.width=r.width+"px";
+  document.body.appendChild(clone);
+  el.style.visibility="hidden";
+  const er=stage.getBoundingClientRect();
+  const tx=(er.left+er.width/2)-(r.left+r.width/2);
+  const ty=(er.top+er.height*0.32)-r.top;
+  requestAnimationFrame(()=>{
+    clone.style.transform=`translate(${tx}px,${ty}px) scale(.5) rotate(6deg)`;
+    clone.style.opacity="0";
+  });
+  setTimeout(()=>clone.remove(),500);
+}
+/* 姫 or 召喚魔物のカットイン */
+function showCutin(c){
+  const el=document.createElement("div");
+  el.className="cutin"+(c.summon?" summon":"");
+  const face=c.summon?(SVG[c.icon]||SVG.princess):SVG.princess;
+  el.innerHTML=`<div class="face">${face}</div>
+    <div><span class="tsub">${c.summon?"SUMMON — 使役":"PRINCESS"}</span><span class="tname">${c.name}</span></div>`;
+  stage.appendChild(el);
+  setTimeout(()=>el.remove(),640);
+}
+async function applyPlayerEffect(eff){
+  const e=run.enemy;
+  if(eff.dmg){
+    let dmg=eff.dmg;
+    if(run.buffX2){dmg*=2;run.buffX2=false;}
+    if(e.block>0){const ab=Math.min(e.block,dmg);e.block-=ab;dmg-=ab;}
+    e.hp=Math.max(0,e.hp-dmg);
+    const ec=$("#ecard");
+    if(ec){ec.classList.remove("hit");void ec.offsetWidth;ec.classList.add("hit");}
+    const fx=document.createElement("div");
+    fx.className="slashfx";
+    stage.appendChild(fx);
+    setTimeout(()=>fx.remove(),340);
+    spawnDmg(stage,dmg>0?dmg:"BLOCK",dmg>0?"":"block");
+    AudioSys.hit();
+    updateEnemyBars();
+    await wait(dmg>=10?260:140); // 大ダメージほど長いヒットストップ
+  }
+  if(eff.block){run.block+=eff.block;spawnDmg(stage,"+"+eff.block,"block onhero");}
+  if(eff.heal){run.hp=Math.min(run.maxhp,run.hp+eff.heal);spawnDmg(stage,"+"+eff.heal,"heal onhero");AudioSys.heal();}
+  if(eff.gems){run.gems+=eff.gems;AudioSys.gem();spawnDmg(stage,"◆+"+eff.gems,"heal onhero");}
+  if(eff.buff==="x2"){run.buffX2=true;spawnDmg(stage,"×2!","heal onhero");AudioSys.heal();}
+  renderHUD();
+}
+function spawnDmg(parent,text,cls=""){
+  const s=document.createElement("div");
+  s.className="dmgnum "+cls;s.textContent=text;
+  s.style.left=(42+rnd(16))+"%";
+  parent.appendChild(s);
+  setTimeout(()=>s.remove(),800);
+}
+
+/* ============================================================
+   出目操作カード
+============================================================ */
+function startManip(h){
+  const usable=run.dice.some(d=>!d.locked&&!d.spent&&d.placed==null);
+  if(!usable){AudioSys.tone(160,.12,"sawtooth",.1);return;}
+  manipCard=h;selDie=null;
+  app.classList.add("targeting");
+  veil.classList.add("show");
+  renderDice();renderHand();
+}
+veil.addEventListener("pointerdown",e=>{if(e.target===veil||e.target.classList.contains("msg"))cancelManip();});
+function cancelManip(){
+  manipCard=null;
+  app.classList.remove("targeting");
+  veil.classList.remove("show");
+  document.querySelectorAll(".pmchoice").forEach(x=>x.remove());
+  renderDice();
+}
+function applyManip(d){
+  const c=CARDS[manipCard.id];
+  if(c.manip==="pm1"){
+    document.querySelectorAll(".pmchoice").forEach(x=>x.remove());
+    const box=document.createElement("div");
+    box.className="pmchoice";
+    const rect=trayEl.getBoundingClientRect();
+    box.style.top=(rect.top-52)+"px";
+    box.innerHTML=`<button data-m="-1" ${d.v<=1?"disabled":""}>−1</button><button data-m="+1" ${d.v>=6?"disabled":""}>＋1</button>`;
+    box.addEventListener("pointerdown",ev=>{
+      const b=ev.target.closest("button");if(!b||b.disabled)return;
+      d.v+=parseInt(b.dataset.m,10);
+      finishManip();
+    });
+    document.body.appendChild(box);
+    return;
+  }
+  if(c.manip==="flip")d.v=7-d.v;
+  if(c.manip==="set6")d.v=6;
+  finishManip();
+}
+function finishManip(){
+  const h=manipCard;
+  run.hand=run.hand.filter(x=>x!==h);
+  run.discard.push(h.id);
+  AudioSys.place();
+  cancelManip();
+  renderHand();
+}
+
+/* ============================================================
+   ターンフロー
+============================================================ */
+function showBanner(who){
+  const b=document.createElement("div");
+  b.className="turnbanner "+(who==="p"?"p":"e");
+  b.innerHTML=`<span>${who==="p"?"姫のターン":"魔王軍のターン"}</span>`;
+  stage.appendChild(b);
+  setTimeout(()=>b.remove(),CFG.BANNER_MS);
+}
+async function startPlayerTurn(){
+  app.classList.remove("enemy-phase");
+  run.block=0;
+  showBanner("p");
+  await wait(350);
+  rollDice();
+  drawHand();
+  selDie=null;
+  renderHand();renderHUD();renderIntent();
+  setButtons(true);
+  run.busy=false;
+  tutNotify("turn");
+}
+function setButtons(on){
+  btnReroll.disabled=!on||run.hp<=run.rerollHP;
+  btnEnd.disabled=!on;
+}
+btnReroll.addEventListener("pointerdown",()=>{
+  if(run.busy||btnReroll.disabled)return;
+  if(run.hp<=run.rerollHP)return;
+  run.hp-=run.rerollHP;
+  spawnDmg(stage,run.rerollHP,"onhero");
+  app.classList.add("shake");setTimeout(()=>app.classList.remove("shake"),CFG.SHAKE_MS);
+  run.dice.forEach(d=>{if(!d.locked&&!d.spent&&d.placed==null)d.v=d6();});
+  selDie=null;
+  AudioSys.roll();
+  renderDice(true);renderHand();renderHUD();
+  setButtons(true);
+});
+btnEnd.addEventListener("pointerdown",async()=>{
+  if(run.busy||btnEnd.disabled)return;
+  tutNotify("end");
+  cancelManip();
+  run.busy=true;setButtons(false);
+  selDie=null;
+  discardHand();renderHand();
+  run.dice.forEach(d=>d.spent=true);renderDice();
+  await enemyTurn();
+});
+async function enemyTurn(){
+  const e=run.enemy;
+  app.classList.add("enemy-phase");
+  showBanner("e");
+  await wait(CFG.BANNER_MS*0.8);
+  const act=e.acts[e.actIdx%e.acts.length];
+  e.actIdx++;
+  await performEnemyAct(act);
+  if(run.hp<=0){onDefeat();return;}
+  renderIntent();
+  await wait(300);
+  await startPlayerTurn();
+}
+async function performEnemyAct(act){
+  const e=run.enemy;
+  const ec=$("#ecard");
+  if(act.a==="atk"||act.a==="big"){
+    const times=act.x||1;
+    for(let i=0;i<times;i++){
+      if(ec){ec.classList.remove("atk");void ec.offsetWidth;ec.classList.add("atk");}
+      await wait(340); // 溜め→突進の発生タイミングに合わせる
+      let dmg=act.n;
+      if(run.block>0){const ab=Math.min(run.block,dmg);run.block-=ab;dmg-=ab;}
+      if(dmg>0){
+        run.hp=Math.max(0,run.hp-dmg);
+        app.classList.add("shake");setTimeout(()=>app.classList.remove("shake"),CFG.SHAKE_MS);
+        AudioSys.hit();
+        spawnDmg(stage,dmg,"onhero");
+      }else{
+        spawnDmg(stage,"BLOCK","block onhero");
+        AudioSys.tone(300,.1,"square",.1);
+      }
+      renderHUD();
+      await wait(CFG.ENEMY_ACT_DELAY*0.6);
+    }
+  }else if(act.a==="guard"){
+    e.block+=act.n;updateEnemyBars();
+    spawnDmg(stage,"🛡+"+act.n,"block");
+    await wait(CFG.ENEMY_ACT_DELAY);
+  }else if(act.a==="heal"){
+    e.hp=Math.min(e.max,e.hp+act.n);updateEnemyBars();
+    spawnDmg(stage,"+"+act.n,"heal");AudioSys.heal();
+    await wait(CFG.ENEMY_ACT_DELAY);
+  }else if(act.a==="lock"){
+    run.pendingLock=act.k;
+    spawnDmg(stage,"⛓ 呪縛!","");
+    AudioSys.warn();
+    await wait(CFG.ENEMY_ACT_DELAY);
+  }
+}
+
+/* ============================================================
+   バトル開始・勝利
+============================================================ */
+async function startBattle(eid){
+  const base=ENEMIES[eid];
+  run.enemy={...base,max:base.hp,hp:base.hp,block:0,actIdx:0,acts:base.acts};
+  run.phase="battle";
+  run.pendingLock=0;run.block=0;run.buffX2=false;
+  app.classList.toggle("boss-bg",!!base.boss);
+  setChromeVisible(true);
+  renderHUD();renderEnemy();renderIntent();
+  trayEl.innerHTML="";handEl.innerHTML="";
+  setButtons(false);
+  await wait(400);
+  await startPlayerTurn();
+}
+async function onEnemyDefeated(){
+  run.busy=true;setButtons(false);
+  const e=run.enemy;
+  const ec=$("#ecard");
+  AudioSys.win();
+  await wait(150);
+  if(ec)ec.classList.add("dead");
+  run.gems+=e.gem;
+  const ups=gainExp(e.lv);
+  renderHUD();
+  await wait(600);
+  for(const u of ups){
+    const b=document.createElement("div");
+    b.className="turnbanner lv";
+    b.innerHTML=`<span>LEVEL UP! Lv${u.lv}<small style="display:block;font-size:12px;letter-spacing:.1em;margin-top:3px">${u.extra}</small></span>`;
+    stage.appendChild(b);
+    AudioSys.win();
+    await wait(CFG.BANNER_MS);
+    b.remove();
+    renderHUD();
+  }
+  if(e.boss){showVictory();return;}
+  showReward(e);
+}
+
+/* ============================================================
+   OVERLAY パネル群
+============================================================ */
+function openPanel(html){overlay.innerHTML=`<div class="panel">${html}</div>`;overlay.classList.add("show");}
+function closePanel(){overlay.classList.remove("show");overlay.innerHTML="";}
+
+function rewardChoices(elite){
+  const pool=elite?RARE_POOL:COMMON_POOL.concat(rnd(3)===0?RARE_POOL:[]);
+  const set=new Set();
+  while(set.size<3&&set.size<pool.length)set.add(pick(pool));
+  const out=[...set];
+  // 3択に攻撃カードを最低1枚保証(防御・回復偏り防止)
+  if(!out.some(id=>CARDS[id].type==="atk")){
+    const atks=pool.filter(id=>CARDS[id].type==="atk"&&!out.includes(id));
+    if(atks.length)out[rnd(out.length)]=pick(atks);
+  }
+  return out;
+}
+function showReward(e){
+  const choices=rewardChoices(e.elite);
+  openPanel(`
+    <h2>服 従 !</h2>
+    <div class="plead">魔石 ◆${e.gem} を獲得 ─ 倒した魔物を1体、味方として使役できる</div>
+    <div class="pickrow">${choices.map((cid,i)=>`<div class="card ${CARDS[cid].manip?"manipcard":""}" data-pick="${i}">${cardHTML(cid,{showRare:true})}</div>`).join("")}</div>
+    <div class="actions"><button class="btn ghost" data-skip>使役しない</button></div>`);
+  overlay.querySelectorAll("[data-pick]").forEach(el=>{
+    el.addEventListener("pointerdown",()=>{
+      run.discard.push(choices[parseInt(el.dataset.pick,10)]);
+      AudioSys.gem();closePanel();nextStep();
+    });
+  });
+  overlay.querySelector("[data-skip]").addEventListener("pointerdown",()=>{closePanel();nextStep();});
+}
+
+/* ---------- マップ(部屋選択) ---------- */
+function roomChoicesFor(step){
+  // step は「これから入る部屋」(0-index)
+  if(step===0)return ["battle"];
+  if(step===CFG.TOTAL_STEPS-1)return ["boss"];
+  if(CFG.ELITE_STEPS.includes(step+1))return shuffle(["elite","battle",pick(["rest","shop"])]).slice(0,3);
+  const pool=["battle","battle","event","rest","shop"];
+  const n=2+rnd(2);
+  const out=new Set();
+  while(out.size<n)out.add(pick(pool));
+  return shuffle([...out]);
+}
+const DOOR_META={
+  battle:{icon:"⚔",name:"戦闘",  sub:"魔王軍と交戦<br>技を奪える"},
+  elite: {icon:"💀",name:"強敵",  sub:"危険な精鋭<br>レア技を確定入手"},
+  rest:  {icon:"🔥",name:"休息所",sub:"回復 or<br>カード削除"},
+  shop:  {icon:"⚖",name:"商人",  sub:"魔石で買い物"},
+  event: {icon:"？",name:"運命",  sub:"ダイスに委ねる"},
+  boss:  {icon:"👑",name:"魔王",  sub:"城門を守る<br>最後の敵"},
+};
+function progressHTML(){
+  let s="";
+  for(let i=0;i<CFG.TOTAL_STEPS;i++){
+    const cls=i<run.step?"done":(i===run.step?"cur":"");
+    s+=`<div class="pstep ${cls} ${i===CFG.TOTAL_STEPS-1?"boss":""}"></div>`;
+  }
+  return `<div class="progress">${s}</div>`;
+}
+function nextStep(){
+  if(tut){
+    tut=null;tutHide();
+    openPanel(`
+      <h2>チュートリアル完了!</h2>
+      <div class="plead">魔物を服従させ、使役する術を覚えた。<br>あとは魔王城からの脱出あるのみ!</div>
+      <div class="resultface">${SVG.princess}</div>
+      <div class="actions">
+        <button class="btn sig" data-go>脱出をはじめる</button>
+        <button class="btn ghost" data-tt>タイトルへ</button>
+      </div>`);
+    overlay.querySelector("[data-go]").addEventListener("pointerdown",()=>{closePanel();beginRun();});
+    overlay.querySelector("[data-tt]").addEventListener("pointerdown",()=>{closePanel();showTitle();});
+    return;
+  }
+  run.step++;
+  renderHUD();
+  if(run.step>=CFG.TOTAL_STEPS)return; // 保険
+  showMap();
+}
+function showMap(){
+  run.phase="map";
+  setChromeVisible(false);
+  app.classList.remove("enemy-phase","boss-bg");
+  stage.innerHTML=`<div style="text-align:center;opacity:.35;font-weight:900;letter-spacing:.3em;color:var(--ink)">MAOU CASTLE</div>`;
+  const choices=roomChoicesFor(run.step);
+  openPanel(`
+    <h2>${depthName(run.step)}</h2>
+    <div class="plead">進む扉を選べ</div>
+    ${progressHTML()}
+    <div class="doors">${choices.map((r,i)=>`
+      <div class="door d-${r}" data-r="${i}">
+        <div class="arch2">${DOOR_META[r].icon}</div>
+        <div class="dname">${DOOR_META[r].name}</div>
+        <div class="dsub">${DOOR_META[r].sub}</div>
+      </div>`).join("")}</div>`);
+  overlay.querySelectorAll("[data-r]").forEach(el=>{
+    el.addEventListener("pointerdown",()=>{
+      AudioSys.tap();closePanel();
+      enterRoom(choices[parseInt(el.dataset.r,10)]);
+    });
+  });
+}
+function tierForStep(step){ return step<4?TIER1:TIER2; }
+function enterRoom(type){
+  if(type==="battle")startBattle(pick(tierForStep(run.step)));
+  else if(type==="elite")startBattle("knight");
+  else if(type==="boss")startBattle("maou");
+  else if(type==="rest")showRest();
+  else if(type==="shop")showShop();
+  else if(type==="event")showEvent();
+}
+
+/* ---------- 休息所 ---------- */
+function showRest(){
+  const heal=Math.ceil(run.maxhp*CFG.REST_HEAL_RATE);
+  openPanel(`
+    <h2>休息所</h2>
+    <div class="plead">焚き火のそばで一息つく</div>
+    <div class="shoprow"><div class="sinfo"><div class="sname">休む</div><div class="sdesc">HPを ${heal} 回復する</div></div><button class="btn teal" data-a="heal">回復</button></div>
+    <div class="shoprow"><div class="sinfo"><div class="sname">整理する</div><div class="sdesc">デッキからカードを1枚削除</div></div><button class="btn" data-a="remove">選ぶ</button></div>`);
+  overlay.querySelector('[data-a="heal"]').addEventListener("pointerdown",()=>{
+    run.hp=Math.min(run.maxhp,run.hp+heal);AudioSys.heal();renderHUD();closePanel();nextStep();
+  });
+  overlay.querySelector('[data-a="remove"]').addEventListener("pointerdown",()=>showRemove(()=>nextStep(),true));
+}
+function showRemove(done,allowBack){
+  discardHand();
+  const ids=allDeckIds();
+  openPanel(`
+    <h2>カード削除</h2>
+    <div class="plead">削除するカードをタップ</div>
+    <div class="decklist">${ids.map((cid,i)=>`<div class="card ${CARDS[cid].manip?"manipcard":""}" data-i="${i}">${cardHTML(cid)}</div>`).join("")}</div>
+    ${allowBack?'<div class="actions"><button class="btn ghost" data-back>やめる</button></div>':""}`);
+  overlay.querySelectorAll("[data-i]").forEach(el=>{
+    el.addEventListener("pointerdown",()=>{
+      const cid=ids[parseInt(el.dataset.i,10)];
+      let ix=run.deck.indexOf(cid);
+      if(ix>=0)run.deck.splice(ix,1);
+      else{ix=run.discard.indexOf(cid);if(ix>=0)run.discard.splice(ix,1);}
+      AudioSys.fire();closePanel();done();
+    });
+  });
+  const back=overlay.querySelector("[data-back]");
+  if(back)back.addEventListener("pointerdown",()=>{closePanel();showRest();});
+}
+
+/* ---------- 商人 ---------- */
+function showShop(){
+  const stockIds=shuffle(COMMON_POOL.concat(RARE_POOL)).slice(0,3);
+  const stock=stockIds.map((cid,i)=>({cid,cost:CFG.SHOP.cardCost[i]+(CARDS[cid].rare?4:0),sold:false}));
+  let potion=false,hpUp=false;
+  const render=()=>{
+    openPanel(`
+      <h2>商人</h2>
+      <div class="plead">手持ちの魔石 ◆ ${run.gems}</div>
+      ${stock.map((s,i)=>`
+        <div class="shoprow ${s.sold?"sold":""}">
+          <div class="sinfo"><div class="sname">${CARDS[s.cid].name}${CARDS[s.cid].rare?" ★":""}</div><div class="sdesc">${CARDS[s.cid].desc.replace(/\n/g," ")}</div></div>
+          <button class="btn sig" data-buy="${i}" ${s.sold||run.gems<s.cost?"disabled":""}>◆${s.cost}</button>
+        </div>`).join("")}
+      <div class="shoprow ${potion?"sold":""}">
+        <div class="sinfo"><div class="sname">回復ポーション</div><div class="sdesc">HPを ${CFG.POTION_HEAL} 回復</div></div>
+        <button class="btn teal" data-potion ${potion||run.gems<CFG.SHOP.potion?"disabled":""}>◆${CFG.SHOP.potion}</button>
+      </div>
+      <div class="shoprow ${hpUp?"sold":""}">
+        <div class="sinfo"><div class="sname">命の水晶</div><div class="sdesc">最大HP +5(即時回復)</div></div>
+        <button class="btn teal" data-hp ${hpUp||run.gems<CFG.SHOP.maxhp?"disabled":""}>◆${CFG.SHOP.maxhp}</button>
+      </div>
+      <div class="shoprow">
+        <div class="sinfo"><div class="sname">カード削除</div><div class="sdesc">デッキから1枚削除</div></div>
+        <button class="btn" data-rm ${run.gems<CFG.SHOP.remove?"disabled":""}>◆${CFG.SHOP.remove}</button>
+      </div>
+      <div class="actions"><button class="btn ghost" data-leave>立ち去る</button></div>`);
+    overlay.querySelectorAll("[data-buy]").forEach(b=>b.addEventListener("pointerdown",()=>{
+      const s=stock[parseInt(b.dataset.buy,10)];
+      if(s.sold||run.gems<s.cost)return;
+      run.gems-=s.cost;s.sold=true;run.discard.push(s.cid);AudioSys.gem();renderHUD();render();
+    }));
+    const bp=overlay.querySelector("[data-potion]");
+    bp.addEventListener("pointerdown",()=>{if(potion||run.gems<CFG.SHOP.potion)return;run.gems-=CFG.SHOP.potion;potion=true;run.hp=Math.min(run.maxhp,run.hp+CFG.POTION_HEAL);AudioSys.heal();renderHUD();render();});
+    const bh=overlay.querySelector("[data-hp]");
+    bh.addEventListener("pointerdown",()=>{if(hpUp||run.gems<CFG.SHOP.maxhp)return;run.gems-=CFG.SHOP.maxhp;hpUp=true;run.maxhp+=5;run.hp+=5;AudioSys.heal();renderHUD();render();});
+    overlay.querySelector("[data-rm]").addEventListener("pointerdown",()=>{if(run.gems<CFG.SHOP.remove)return;run.gems-=CFG.SHOP.remove;renderHUD();showRemove(()=>render(),false);});
+    overlay.querySelector("[data-leave]").addEventListener("pointerdown",()=>{closePanel();nextStep();});
+  };
+  render();
+}
+
+/* ---------- 運命の部屋 ---------- */
+function showEvent(){
+  openPanel(`
+    <h2>運命の間</h2>
+    <div class="plead">古びたダイスが台座に…振るしかない</div>
+    <div class="bigdie" id="bigdie">${dieFace(6)}</div>
+    <div class="actions"><button class="btn sig" data-roll>ダイスを振る</button></div>`);
+  overlay.querySelector("[data-roll]").addEventListener("pointerdown",async ev=>{
+    ev.target.disabled=true;
+    const v=d6();
+    const bd=$("#bigdie");
+    AudioSys.roll();
+    bd.classList.remove("rolling");void bd.offsetWidth;bd.classList.add("rolling");
+    bd.innerHTML=dieFace(v);
+    await wait(650);
+    let msg,apply;
+    if(v<=2){const dmg=4;msg=`罠が作動! HP −${dmg}`;apply=()=>{run.hp=Math.max(1,run.hp-dmg);AudioSys.hit();};}
+    else if(v<=4){const g=6;msg=`魔石鉱脈を発見! ◆ +${g}`;apply=()=>{run.gems+=g;AudioSys.gem();};}
+    else{msg="秘宝の間! レア技を1つ入手";apply=null;}
+    if(apply){
+      apply();renderHUD();
+      openPanel(`<h2>出目は ${v}</h2><div class="plead">${msg}</div><div class="actions"><button class="btn teal" data-ok>進む</button></div>`);
+      overlay.querySelector("[data-ok]").addEventListener("pointerdown",()=>{closePanel();nextStep();});
+    }else{
+      const choices=shuffle(RARE_POOL.slice()).slice(0,3);
+      openPanel(`
+        <h2>出目は ${v} — 大吉!</h2>
+        <div class="plead">${msg}</div>
+        <div class="pickrow">${choices.map((cid,i)=>`<div class="card ${CARDS[cid].manip?"manipcard":""}" data-pick="${i}">${cardHTML(cid,{showRare:true})}</div>`).join("")}</div>`);
+      overlay.querySelectorAll("[data-pick]").forEach(el=>el.addEventListener("pointerdown",()=>{
+        run.discard.push(choices[parseInt(el.dataset.pick,10)]);AudioSys.gem();closePanel();nextStep();
+      }));
+    }
+  });
+}
+
+/* ============================================================
+   勝利 / 敗北 / メタ強化
+============================================================ */
+function showVictory(){
+  tut=null;tutHide();
+  meta.gems+=run.gems;saveMeta();
+  AudioSys.win();
+  openPanel(`
+    <h2>脱 出 成 功</h2>
+    <div class="plead">姫は自らの手で城門をくぐった</div>
+    <div class="resultface">${SVG.princess}</div>
+    <div class="bignum">◆ ${run.gems}<small>獲得した魔石(蓄積 ${meta.gems})</small></div>
+    <div class="actions">
+      <button class="btn teal" data-again>もう一度脱出する</button>
+      <button class="btn ghost" data-title>タイトルへ</button>
+    </div>`);
+  overlay.querySelector("[data-again]").addEventListener("pointerdown",()=>{closePanel();beginRun();});
+  overlay.querySelector("[data-title]").addEventListener("pointerdown",()=>{closePanel();showTitle();});
+}
+function onDefeat(){
+  tut=null;tutHide();
+  const earned=run.gems;
+  meta.gems+=earned;saveMeta();
+  AudioSys.lose();
+  run.busy=true;setButtons(false);
+  openPanel(`
+    <h2>捕 縛 …</h2>
+    <div class="plead">${depthName(run.step)}で力尽きた ─ だが魔石は残る</div>
+    <div class="resultface">${SVG.skull}</div>
+    <div class="bignum">◆ ${earned}<small>獲得した魔石(蓄積 ${meta.gems})</small></div>
+    <div class="actions">
+      <button class="btn sig" data-retry>すぐ再挑戦</button>
+      <button class="btn" data-up>強化する</button>
+    </div>`);
+  overlay.querySelector("[data-retry]").addEventListener("pointerdown",()=>{closePanel();beginRun();});
+  overlay.querySelector("[data-up]").addEventListener("pointerdown",()=>showMeta(true));
+}
+function showMeta(fromDefeat){
+  const render=()=>{
+    openPanel(`
+      <h2>王家の強化</h2>
+      <div class="plead">蓄積した魔石 ◆ ${meta.gems}</div>
+      ${CFG.META.map(u=>{
+        const lv=metaLv(u.id),maxed=lv>=u.max,cost=maxed?0:u.cost[lv];
+        return `<div class="shoprow ${maxed?"sold":""}">
+          <div class="sinfo"><div class="sname">${u.name} <span style="color:var(--teal)">${"●".repeat(lv)}${"○".repeat(u.max-lv)}</span></div>
+          <div class="sdesc">${u.desc}</div></div>
+          <button class="btn sig" data-u="${u.id}" ${maxed||meta.gems<cost?"disabled":""}>${maxed?"MAX":"◆"+cost}</button>
+        </div>`;}).join("")}
+      <div class="actions"><button class="btn teal" data-go>${fromDefeat?"再挑戦":"閉じる"}</button></div>`);
+    overlay.querySelectorAll("[data-u]").forEach(b=>b.addEventListener("pointerdown",()=>{
+      const u=CFG.META.find(x=>x.id===b.dataset.u);
+      const lv=metaLv(u.id);
+      if(lv>=u.max||meta.gems<u.cost[lv])return;
+      meta.gems-=u.cost[lv];meta.up[u.id]=lv+1;saveMeta();AudioSys.gem();render();
+    }));
+    overlay.querySelector("[data-go]").addEventListener("pointerdown",()=>{
+      closePanel();
+      if(fromDefeat)beginRun();else showTitle();
+    });
+  };
+  render();
+}
+
+/* ============================================================
+   TUTORIAL — 実戦形式チュートリアル
+============================================================ */
+let tut=null;
+const TUT_STEPS=[
+  {target:"#intent",   btn:true,     text:"敵は次の行動を<b>必ず予告</b>してくる。<br>ここを見てから作戦を立てよう"},
+  {target:"#dicetray", wait:"place", text:"毎ターン、ダイスを振る。<br>ダイスを掴んで<b>カードの枠へドラッグ!</b><br>(タップで選んで枠タップでもOK)"},
+  {target:"#hand",     wait:"fire",  text:"枠が全部埋まったカードは光る。<br><b>タップで発動!</b>"},
+  {target:"#btnReroll",btn:true,     text:"出目が悪ければ<b>HP2を代償</b>に<br>振り直せる。血を流すか、知恵で凌ぐか"},
+  {target:"#btnEnd",   wait:"end",   text:"残りのダイスも使い切ったら<br><b>ターン終了</b>で敵の番へ"},
+  {target:"#hud",      btn:true,     text:"敵の攻撃はHPで受ける。<br>使ったカードは<b>捨て札</b>へ行き、山札が<br>尽きるとシャッフルされて戻ってくる。<br>HPが尽きる前に倒し切ろう!"},
+];
+function startTutorial(){
+  closePanel();
+  titleEl.style.display="none";
+  newRun();
+  tut={i:0,rig:true};
+  renderHUD();
+  startBattle("slime");
+}
+function tutShow(){
+  if(!tut)return;
+  const s=TUT_STEPS[tut.i];
+  if(!s){tutHide();return;}
+  const tgt=document.querySelector(s.target);
+  if(!tgt)return;
+  const r=tgt.getBoundingClientRect();
+  let c=$("#coach");
+  if(!c){c=document.createElement("div");c.id="coach";document.body.appendChild(c);}
+  const above=r.top>window.innerHeight*0.5;
+  c.innerHTML=`
+    <div class="spot" style="left:${r.left-6}px;top:${r.top-6}px;width:${r.width+12}px;height:${r.height+12}px"></div>
+    <div class="bubble ${s.wait?"waiting":""}" style="${above?`bottom:${window.innerHeight-r.top+16}px`:`top:${r.bottom+16}px`}">
+      <div class="btxt">${s.text}</div>
+      ${s.btn?'<button class="btn sig bnext">OK</button>':'<div class="bwait">▲ 実際にやってみよう</div>'}
+    </div>`;
+  const b=c.querySelector(".bnext");
+  if(b)b.addEventListener("pointerdown",()=>{AudioSys.tap();tut.i++;tutShow();});
+}
+function tutHide(){const c=$("#coach");if(c)c.remove();}
+function tutNotify(evt){
+  if(!tut)return;
+  const s=TUT_STEPS[tut.i];
+  if(s&&s.wait===evt){
+    tut.i++;
+    if(evt==="end")tutHide();  // 敵ターン中は隠し、次の自ターンで再表示
+    else tutShow();
+  }else if(evt==="turn"){
+    tutShow();  // ターン開始で位置を再計算して表示
+  }
+}
+
+/* ============================================================
+   TITLE
+============================================================ */
+function showResetConfirm(){
+  const upsText=CFG.META.filter(u=>metaLv(u.id)>0).map(u=>`${u.name} Lv${metaLv(u.id)}`).join(" / ")||"なし";
+  openPanel(`
+    <h2>はじめからやり直す</h2>
+    <div class="plead">周回データをすべて消去します。<br>この操作は取り消せません。</div>
+    <div class="shoprow"><div class="sinfo"><div class="sname">蓄積魔石</div><div class="sdesc">◆ ${meta.gems}</div></div></div>
+    <div class="shoprow"><div class="sinfo"><div class="sname">王家の強化</div><div class="sdesc">${upsText}</div></div></div>
+    <div class="actions">
+      <button class="btn ghost" data-no>やめる</button>
+      <button class="btn sig" data-yes>消去してやり直す</button>
+    </div>`);
+  overlay.querySelector("[data-no]").addEventListener("pointerdown",()=>{AudioSys.tap();closePanel();});
+  overlay.querySelector("[data-yes]").addEventListener("pointerdown",()=>{
+    meta={gems:0,up:{hp:0,gem:0,blood:0,dice4:0}};
+    saveMeta();
+    AudioSys.fire();
+    closePanel();
+    showTitle();
+  });
+}
+function showTitle(){
+  titleEl.style.display="flex";
+  setChromeVisible(false);
+  stage.innerHTML="";hud.innerHTML="";
+  titleEl.innerHTML=`
+    <div class="hero">${SVG.titleHero}</div>
+    <div class="logo">
+      <div class="en">DICE<br>PRINCESS</div>
+      <div class="sub">〜 魔王城脱出記 〜</div>
+    </div>
+    <div class="menu">
+      <div class="gemrow"><span class="gemchip">${SVG.i_gem.replace("<svg",'<svg width="15" height="15"')} 蓄積魔石 ${meta.gems}</span></div>
+      <button class="btn sig" id="tStart">脱出をはじめる</button>
+      <button class="btn teal" id="tHow">遊び方</button>
+      <button class="btn" id="tMeta">王家の強化</button>
+      <button class="btn ghost" id="tReset" style="font-size:13px;padding:10px">はじめからやり直す</button>
+    </div>
+    <div class="ver">v${CFG.VERSION}</div>`;
+  $("#tStart").addEventListener("pointerdown",()=>{AudioSys.tap();beginRun();});
+  $("#tHow").addEventListener("pointerdown",()=>{AudioSys.tap();showHowTo();});
+  $("#tMeta").addEventListener("pointerdown",()=>{AudioSys.tap();showMeta(false);});
+  $("#tReset").addEventListener("pointerdown",()=>{AudioSys.tap();showResetConfirm();});
+}
+/* 遊び方 */
+function showHowTo(){
+  openPanel(`
+    <h2>遊び方</h2>
+    <div class="plead">実際に触りながら覚えるのがいちばん早い</div>
+    <div class="actions" style="margin:0 0 14px">
+      <button class="btn sig" data-tut>チュートリアルをプレイ(約1分)</button>
+    </div>
+    <div class="shoprow"><div class="sinfo"><div class="sname">⚔ 基本ルール</div>
+      <div class="sdesc">毎ターンダイスを振り、カードの枠にはめて発動。敵の予告攻撃をしのぎながら、先にHPを削り切れば勝ち。</div></div></div>
+    <div class="shoprow"><div class="sinfo"><div class="sname">🔄 山札と捨て札の巡環</div>
+      <div class="sdesc">使ったカードと余った手札は「捨て札」へ。山札が尽きると捨て札が<b>全てシャッフルされて新しい山札に戻る</b>。カードは失われず何度でも再利用される。デッキを薄く保つほど強いカードが早く回ってくる。</div></div></div>
+    <div class="shoprow"><div class="sinfo"><div class="sname">🎲 運のねじ伏せ方</div>
+      <div class="sdesc">HP2を代償に振り直し。さらに「王家の采配(±1)」「イカサマ(裏返し)」で出目を操作できる。運ゲーではなく手札管理のゲーム。</div></div></div>
+    <div class="shoprow"><div class="sinfo"><div class="sname">召 魔物の使役</div>
+      <div class="sdesc">倒した魔物は味方カードとして仲間にできる。強敵ほどレアな魔物を従えられる。</div></div></div>
+    <div class="shoprow"><div class="sinfo"><div class="sname">👑 姫レベルと周回</div>
+      <div class="sdesc">敵撃破でEXP。Lv3で手札+1、Lv5とLv7でダイス+1。倒れても魔石は蓄積され「王家の強化」で姫は強くなっていく。</div></div></div>
+    <div class="actions"><button class="btn teal" data-close>閉じる</button></div>`);
+  overlay.querySelector("[data-tut]").addEventListener("pointerdown",()=>{AudioSys.tap();startTutorial();});
+  overlay.querySelector("[data-close]").addEventListener("pointerdown",()=>{AudioSys.tap();closePanel();});
+}
+function beginRun(){
+  titleEl.style.display="none";
+  newRun();
+  renderHUD();
+  enterRoom("battle"); // 牢屋の扉を吹き飛ばして即戦闘(最初の3分)
+}
+
+/* boot */
+setChromeVisible(false);
+showTitle();
+</script>
+</body>
+</html>
